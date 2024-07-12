@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MyCounterButton } from '@tabletop-arena/ui';
+    import { MyCounterButton } from '@tabletop-arena/ui'
 </script>
 
 <h1>Web</h1>

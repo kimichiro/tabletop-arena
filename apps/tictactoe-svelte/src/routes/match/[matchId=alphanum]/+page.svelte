@@ -146,15 +146,13 @@
             <div class="timer-clock" class:invisible={!isYourTurn} class:opacity-0={!isYourTurn}>
                 <div class="timer-digit" class:exceed={timerSeconds < 0}>
                     <span class="countdown text-5xl">
-                        <span class="flex-initial" style={`--value:${Math.abs(timerMinutes)};`}
-                        ></span>
+                        <span class="flex-initial" style={`--value:${Math.abs(timerMinutes)};`}></span>
                     </span>
                     min
                 </div>
                 <div class="timer-digit" class:exceed={timerSeconds < 0}>
                     <span class="countdown text-5xl">
-                        <span class="flex-initial" style={`--value:${Math.abs(timerSeconds)};`}
-                        ></span>
+                        <span class="flex-initial" style={`--value:${Math.abs(timerSeconds)};`}></span>
                     </span>
                     sec
                 </div>
@@ -162,11 +160,7 @@
             <article class="prose lg:prose-xl">
                 <h1>{indicatorTitle}</h1>
             </article>
-            <button
-                class="btn btn-active btn-neutral btn-wide"
-                class:invisible={!isGameEnded}
-                on:click={onPlayAgain}
-            >
+            <button class="btn btn-active btn-neutral btn-wide" class:invisible={!isGameEnded} on:click={onPlayAgain}>
                 Play Again
             </button>
         </div>

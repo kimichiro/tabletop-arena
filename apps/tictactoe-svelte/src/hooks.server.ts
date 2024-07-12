@@ -10,16 +10,11 @@ export async function handle({ event, resolve }) {
         const sessionid = event.cookies.get('sessionid')
 
         const responseBody =
-            sessionid == null
-                ? '[/hooks.server.ts] first visitor'
-                : `[/hooks.server.ts] revisitor (${sessionid})`
+            sessionid == null ? '[/hooks.server.ts] first visitor' : `[/hooks.server.ts] revisitor (${sessionid})`
 
         const response = new Response(responseBody)
 
-        response.headers.set(
-            'set-cookie',
-            `sessionid=${sessionid ?? crypto.randomUUID()}; max-age=60`
-        )
+        response.headers.set('set-cookie', `sessionid=${sessionid ?? crypto.randomUUID()}; max-age=60`)
         response.headers.set('x-custom-header', 'hook')
 
         return response
@@ -39,10 +34,7 @@ export async function handleError({ error }) {
 export async function handleFetch({ request, fetch }) {
     if (request.url.startsWith('http://starter-kit-svelte')) {
         request = new Request(
-            request.url.replace(
-                'http://starter-kit-svelte',
-                `http://${HOST}${PORT != null ? ':' : ''}${PORT}`
-            ),
+            request.url.replace('http://starter-kit-svelte', `http://${HOST}${PORT != null ? ':' : ''}${PORT}`),
             request
         )
     }

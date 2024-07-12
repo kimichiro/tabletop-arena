@@ -3,8 +3,8 @@
 <style>
     .blob-loader {
         --block: no-repeat linear-gradient(oklch(var(--n)) 0 0);
-        background: var(--block), var(--block), var(--block), var(--block), var(--block),
-            var(--block), var(--block), var(--block), var(--block);
+        background: var(--block), var(--block), var(--block), var(--block), var(--block), var(--block), var(--block),
+            var(--block), var(--block);
 
         background-size: 1rem 1rem;
         width: 2.5rem;

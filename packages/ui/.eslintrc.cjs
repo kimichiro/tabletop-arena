@@ -1,3 +1,3 @@
 module.exports = {
-  extends: ['@tabletop-arena/eslint-config/svelte']
-};
+    extends: ['@tabletop-arena/eslint-config/svelte']
+}
