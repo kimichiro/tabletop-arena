@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    @font-face {
+        font-family: 'DynaPuff';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(/fonts/DynaPuff.ttf);
+    }
+
+    html {
+        font-family: 'DynaPuff', system-ui, sans-serif;
+
+        @apply select-none;
+    }
+}

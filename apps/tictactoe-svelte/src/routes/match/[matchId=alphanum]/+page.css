@@ -1,0 +1,151 @@
+.roleEx {
+    @apply text-primary;
+
+    text-shadow:
+        2px 2px 2px oklch(var(--n)),
+        -2px 2px 2px oklch(var(--n)),
+        2px -2px 2px oklch(var(--n)),
+        -2px -2px 2px oklch(var(--n));
+}
+
+.roleOh {
+    @apply text-secondary;
+
+    text-shadow:
+        2px 2px 2px oklch(var(--n)),
+        -2px 2px 2px oklch(var(--n)),
+        2px -2px 2px oklch(var(--n)),
+        -2px -2px 2px oklch(var(--n));
+}
+
+.component-container {
+    @apply flex;
+    @apply flex-col;
+    @apply justify-between;
+    @apply justify-items-center;
+    @apply items-center;
+    @apply gap-8;
+    @apply p-8;
+    @apply h-dvh;
+    @apply bg-base-200;
+}
+
+.indicator-bar {
+    @apply flex;
+    @apply flex-col;
+    @apply gap-4;
+
+    @apply items-center;
+}
+
+.indicator-bar .timer-clock {
+    @apply flex;
+    @apply flex-row;
+    @apply gap-4;
+}
+
+.indicator-bar .timer-clock > .timer-digit {
+    @apply bg-neutral;
+    @apply rounded-box;
+
+    @apply w-fit;
+    @apply p-2;
+
+    @apply text-neutral-content;
+    @apply text-center;
+
+    @apply flex;
+    @apply flex-col;
+}
+
+.indicator-bar .timer-clock > .timer-digit.exceed {
+    @apply bg-base-300;
+    @apply text-error;
+}
+
+.area-table {
+    @apply grid;
+    @apply gap-4;
+    @apply grid-rows-3;
+    @apply grid-cols-3;
+
+    @apply w-fit;
+    @apply justify-center;
+}
+
+.area-table .cell {
+    @apply bg-accent;
+    @apply rounded-xl;
+    @apply shadow-xl;
+
+    @apply h-24;
+    @apply w-24;
+
+    @apply text-7xl;
+
+    @apply flex;
+    @apply justify-center;
+    @apply items-center;
+}
+
+.area-table .cell.actionable {
+    @apply cursor-pointer;
+}
+
+.score-board {
+    @apply flex;
+    @apply flex-row;
+}
+
+.score-board .divider {
+    @apply gap-1;
+}
+
+.score-board .player-card {
+    @apply card;
+    @apply bg-base-100;
+    @apply rounded-box;
+
+    @apply h-16;
+    @apply p-4;
+    @apply place-items-center;
+
+    @apply flex;
+}
+
+.score-board .player-card.current-turn {
+    @apply outline;
+    @apply outline-offset-2;
+    @apply outline-4;
+
+    outline-color: oklch(var(--a));
+}
+
+.score-board .player-card.me {
+    @apply bg-neutral;
+    @apply text-neutral-content;
+}
+
+.score-board .player-card .player-label {
+    @apply flex;
+    @apply items-center;
+    @apply gap-4;
+
+    @apply text-center;
+}
+
+.score-board .player-card .player-label .name {
+    @apply flex-none;
+    @apply w-32;
+
+    @apply text-lg;
+    @apply truncate;
+}
+
+.score-board .player-card .player-label .role {
+    @apply flex-none;
+    @apply w-8;
+    @apply h-8;
+
+    @apply text-3xl;
+}
