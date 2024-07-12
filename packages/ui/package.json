@@ -1,5 +1,5 @@
 {
-  "name": "@repo/ui",
+  "name": "@tabletop-arena/ui",
   "version": "0.0.0",
   "type": "module",
   "module": "index.ts",
@@ -14,7 +14,7 @@
     "lint": "eslint ."
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
+    "@tabletop-arena/eslint-config": "*",
     "svelte": "^4.2.12"
   }
 }

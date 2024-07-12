@@ -15,17 +15,17 @@
     "test:unit": "vitest"
   },
   "dependencies": {
-    "@repo/ui": "*"
+    "@tabletop-arena/ui": "*"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",
     "@sveltejs/adapter-auto": "^3.1.1",
     "@sveltejs/kit": "^2.5.2",
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
+    "@tabletop-arena/eslint-config": "*",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
-    "@repo/eslint-config": "*",
     "prettier": "^3.2.5",
     "prettier-plugin-svelte": "^3.2.2",
     "svelte": "^4.2.12",
