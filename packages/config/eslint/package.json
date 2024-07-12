@@ -1,6 +1,7 @@
 {
   "name": "@tabletop-arena/eslint-config",
   "version": "0.0.0",
+  "private": true,
   "exports": {
     ".": "./default/.eslintrc.cjs",
     "./svelte": "./svelte/.eslintrc.cjs"
@@ -11,8 +12,5 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-turbo": "^2.0.0",
     "eslint-plugin-svelte": "^2.35.1"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

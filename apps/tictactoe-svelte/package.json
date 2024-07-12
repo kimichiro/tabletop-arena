@@ -3,6 +3,9 @@
     "version": "0.0.1",
     "type": "module",
     "private": true,
+    "engines": {
+        "node": ">=20"
+    },
     "scripts": {
         "start": "node build/index.js",
         "dev": "vite dev",
@@ -21,6 +24,7 @@
         "@sveltejs/kit": "^2.0.0",
         "@sveltejs/vite-plugin-svelte": "^3.0.0",
         "@tabletop-arena/eslint-config": "*",
+        "@tabletop-arena/typescript-config": "*",
         "@tailwindcss/typography": "^0.5.13",
         "@types/eslint": "^8.56.0",
         "@typescript-eslint/eslint-plugin": "^7.0.0",

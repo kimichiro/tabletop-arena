@@ -1,19 +1,13 @@
 {
+    "extends": "@tabletop-arena/typescript-config",
     "compilerOptions": {
-        "outDir": "build",
-        "target": "ESNext",
-        "module": "CommonJS",
+        "target": "esnext",
+        "module": "esnext",
         "moduleResolution": "node",
-        "strict": true,
-        "allowJs": true,
-        "strictNullChecks": false,
-        "esModuleInterop": true,
+        "outDir": "build",
+
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "useDefineForClassFields": false,
-        "resolveJsonModule": true
+        "emitDecoratorMetadata": true
     },
-    "include": ["src"]
+    "include": ["./src/**/*.ts"]
 }

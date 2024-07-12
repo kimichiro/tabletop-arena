@@ -55,7 +55,7 @@ class Action extends GameAction {
 }
 
 class Area extends GameArea<Action> {
-    @type({ map: 'string' }) readonly table: Map<string, Role>
+    @type({ map: 'string' }) table: MapSchema<Role, string> = new MapSchema<Role, string>()
 
     @filterChildren(function (
         this: Area,
@@ -70,23 +70,17 @@ class Area extends GameArea<Action> {
             this.table.get(value.position) == null
         )
     })
-    actions: ArraySchema<Action>
-
-    constructor() {
-        super([])
-
-        this.table = new MapSchema<Role>()
-    }
+    actions: ArraySchema<Action> = new ArraySchema<Action>()
 }
 
 class Player extends GameParticipant {
-    @type('string') role: Role
+    @type('string') role: Role = Role.Ex
 }
 
 @injectable()
 export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
     constructor() {
-        super(new GameState(new Area(), [], null, [], null))
+        super(new GameState<Action, Area, Player>(new Area(), null, null))
     }
 
     protected onInit(): void {
@@ -95,17 +89,24 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
     }
 
     protected onSetup(): void {
-        const roles = [Role.Ex, Role.Oh]
+        const roles = () => {
+            let randomRole = Math.round(Math.random()) === 0 ? Role.Ex : Role.Oh
+            return {
+                get: () => (randomRole = randomRole === Role.Ex ? Role.Oh : Role.Ex)
+            }
+        }
+
         this.context.participants.forEach(({ id, name, userId, connection, remainingTime }, index) => {
             const player = new Player(id, name, userId, connection, remainingTime)
-            player.role = Math.round(Math.random()) === 0 ? roles.shift() : roles.pop()
+            player.role = roles().get()
 
             this.context.participants[index] = player
             this.state.participants.push(player)
         })
 
         const currentRole = Role.Ex
-        this.state.currentTurn = this.context.participants.find((participant) => participant.role === currentRole)
+        this.state.currentTurn =
+            this.context.participants.find((participant) => participant.role === currentRole) ?? null
 
         this.state.area.actions.push(new Action(currentRole, Position.A1))
         this.state.area.actions.push(new Action(currentRole, Position.A2))
@@ -162,10 +163,13 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
             this.state.area.actions.splice(actionIndex, 1)
 
             const otherRole = [Role.Ex, Role.Oh].filter((role) => role !== action.role).pop()
-            this.state.currentTurn = this.state.participants.find((participant) => participant.role === otherRole)
-            this.state.area.actions = new ArraySchema(
-                ...this.state.area.actions.map((a) => new Action(otherRole, a.position))
-            )
+            if (otherRole != null) {
+                this.state.currentTurn =
+                    this.state.participants.find((participant) => participant.role === otherRole) ?? null
+                this.state.area.actions = new ArraySchema(
+                    ...this.state.area.actions.map((a) => new Action(otherRole, a.position))
+                )
+            }
         } else {
             this.state.currentTurn = null
             this.state.area.actions = new ArraySchema()
@@ -186,7 +190,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
         })
         if (winningMove != null) {
             const winner = this.state.participants.find(({ role }) => role === winningMove.at(0))
-            return new GameResult(false, winner)
+            return new GameResult(false, winner ?? null)
         }
 
         const possibleWin = moves.some((roles) => {

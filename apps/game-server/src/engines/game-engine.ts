@@ -5,8 +5,8 @@ export interface GameContext {}
 export abstract class GameEngine<State extends Schema, Context extends GameContext, Settings extends object> {
     #state: State
     #started: boolean
-    #context: Context
-    #settings: Settings
+    #context!: Context
+    #settings!: Settings
 
     constructor(state: State) {
         this.#state = state

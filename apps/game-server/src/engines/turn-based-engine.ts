@@ -5,13 +5,7 @@ import { GameContext, GameEngine } from './game-engine'
 export class GameAction extends Schema {}
 
 export abstract class GameArea<Action extends GameAction> extends Schema {
-    @type({ array: GameAction }) actions: ArraySchema<Action>
-
-    constructor(actions: Action[]) {
-        super()
-
-        this.actions = new ArraySchema<Action>(...actions)
-    }
+    @type({ array: GameAction }) actions: ArraySchema<Action> = new ArraySchema<Action>()
 }
 
 export type ConnectionStatus = 'unknown' | 'online' | 'offline'
@@ -76,25 +70,17 @@ export class GameState<
     Result extends GameResult = GameResult
 > extends Schema {
     @type(GameArea) area: Area
-    @type({ array: GameParticipant }) participants: ArraySchema<Participant>
+    @type({ array: GameParticipant }) participants: ArraySchema<Participant> = new ArraySchema<Participant>()
     @type(GameParticipant) currentTurn: Participant | null
 
-    @type({ array: GameMove }) moves: ArraySchema<Move>
+    @type({ array: GameMove }) moves: ArraySchema<Move> = new ArraySchema<Move>()
     @type(GameResult) result: Result | null
 
-    constructor(
-        area: Area,
-        participants: Participant[] = [],
-        currentTurn: Participant | null = null,
-        moves: Move[] = [],
-        result: Result | null = null
-    ) {
+    constructor(area: Area, currentTurn: Participant | null = null, result: Result | null = null) {
         super()
 
         this.area = area
-        this.participants = new ArraySchema<Participant>(...participants)
         this.currentTurn = currentTurn
-        this.moves = new ArraySchema<Move>(...moves)
         this.result = result
     }
 }

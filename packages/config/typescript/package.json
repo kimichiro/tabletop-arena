@@ -1,0 +1,9 @@
+{
+  "name": "@tabletop-arena/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./tsconfig.json",
+    "./svelte": "./svelte/tsconfig.json"
+  }
+}

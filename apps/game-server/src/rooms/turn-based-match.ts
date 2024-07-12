@@ -44,11 +44,12 @@ const TIMER_TIMEOUT_DEFAULT_REGAIN = 20000
 const TIMER_TIMEOUT_MINIMUM_REGAIN = 10000
 
 export class TurnBasedMatch extends Room {
-    #engine: TurnBasedEngine
-    #context: TurnBasedContext<GameParticipant>
-    #timer: GameTimer
-    #timers: Map<GameParticipant, CountdownTimer>
+    #engine!: TurnBasedEngine
+    #context!: TurnBasedContext<GameParticipant>
     #options?: unknown
+
+    #timer: GameTimer = new GameTimer(this.clock)
+    #timers: Map<GameParticipant, CountdownTimer> = new Map<GameParticipant, CountdownTimer>()
 
     static async onAuth(token: string, _: IncomingMessage): Promise<IdToken> {
         // Authenticate user
@@ -77,9 +78,6 @@ export class TurnBasedMatch extends Room {
             }
         }
         this.#engine.init(this.#context)
-
-        this.#timer = new GameTimer(this.clock)
-        this.#timers = new Map<GameParticipant, CountdownTimer>()
 
         this.#options = options
 

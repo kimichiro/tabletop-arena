@@ -1,11 +1,10 @@
 {
     "name": "@tabletop-arena/game-server",
-    "version": "1.0.0",
-    "description": "npm init template for bootstrapping an empty Colyseus project",
-    "main": "build/index.js",
+    "version": "0.0.1",
+    "type": "module",
     "private": true,
     "engines": {
-        "node": ">= 16.13.0"
+        "node": ">=20"
     },
     "scripts": {
         "start": "node build/src/index.js",
@@ -16,7 +15,6 @@
         "test": "mocha -r tsx test/**.test.ts --exit --timeout 15000",
         "lint": "prettier --write . && eslint ."
     },
-    "license": "UNLICENSED",
     "dependencies": {
         "@colyseus/monitor": "^0.15.0",
         "@colyseus/playground": "^0.15.3",
@@ -30,10 +28,12 @@
     "devDependencies": {
         "@colyseus/loadtest": "^0.15.0",
         "@colyseus/testing": "^0.15.0",
+        "@tabletop-arena/eslint-config": "*",
+        "@tabletop-arena/typescript-config": "*",
         "@types/eslint": "^8.56.10",
         "@types/express": "^4.17.1",
         "@types/mocha": "^10.0.1",
-        "@tabletop-arena/eslint-config": "*",
+        "@types/node": "^20.14.10",
         "@typescript-eslint/eslint-plugin": "^7.13.0",
         "@typescript-eslint/parser": "^7.13.0",
         "eslint": "^8.57.0",
