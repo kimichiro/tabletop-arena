@@ -34,8 +34,8 @@
         const { roomId, state } = $gameStore
         return (
             roomId != null &&
-            state.area.table[position] == null &&
-            state.area.actions.some((action) => action.position === position)
+            state.area?.table?.[position] == null &&
+            state.area?.actions?.some((action) => action.position === position)
         )
     }
 
@@ -81,15 +81,15 @@
     $: playerEx = players.find(({ role }) => role === Role.Ex)
     $: playerOh = players.find(({ role }) => role === Role.Oh)
 
-    $: cellA1Mark = area.table[Position.A1] ?? ' '
-    $: cellB1Mark = area.table[Position.B1] ?? ' '
-    $: cellC1Mark = area.table[Position.C1] ?? ' '
-    $: cellA2Mark = area.table[Position.A2] ?? ' '
-    $: cellB2Mark = area.table[Position.B2] ?? ' '
-    $: cellC2Mark = area.table[Position.C2] ?? ' '
-    $: cellA3Mark = area.table[Position.A3] ?? ' '
-    $: cellB3Mark = area.table[Position.B3] ?? ' '
-    $: cellC3Mark = area.table[Position.C3] ?? ' '
+    $: cellA1Mark = area?.table?.[Position.A1] ?? ' '
+    $: cellB1Mark = area?.table?.[Position.B1] ?? ' '
+    $: cellC1Mark = area?.table?.[Position.C1] ?? ' '
+    $: cellA2Mark = area?.table?.[Position.A2] ?? ' '
+    $: cellB2Mark = area?.table?.[Position.B2] ?? ' '
+    $: cellC2Mark = area?.table?.[Position.C2] ?? ' '
+    $: cellA3Mark = area?.table?.[Position.A3] ?? ' '
+    $: cellB3Mark = area?.table?.[Position.B3] ?? ' '
+    $: cellC3Mark = area?.table?.[Position.C3] ?? ' '
 
     $: cellA1Actionable = false
     $: cellB1Actionable = false

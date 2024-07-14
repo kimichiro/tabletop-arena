@@ -55,7 +55,7 @@ class Action extends GameAction {
 }
 
 class Area extends GameArea<Action> {
-    @type({ map: 'string' }) table: MapSchema<Role, string> = new MapSchema<Role, string>()
+    @type({ map: 'string' }) table: MapSchema<Role, Position> = new MapSchema<Role, Position>()
 
     @filterChildren(function (
         this: Area,

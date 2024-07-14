@@ -1,4 +1,4 @@
-import { Client, Room } from 'colyseus'
+import { Client, Room } from '@colyseus/core'
 import { IncomingMessage } from 'http'
 import { container } from 'tsyringe'
 

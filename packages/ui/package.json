@@ -14,7 +14,7 @@
         "lint": "eslint ."
     },
     "devDependencies": {
-        "@tabletop-arena/eslint-config": "*",
-        "svelte": "^4.2.12"
+        "@tabletop-arena/eslint-config": "^0.0.0",
+        "svelte": "^4.2.18"
     }
 }

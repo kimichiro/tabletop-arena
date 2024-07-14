@@ -3,11 +3,12 @@
     "scripts": {
         "build": "turbo run build",
         "dev": "turbo run dev",
-        "lint": "prettier --write . && turbo run lint"
+        "lint": "prettier --write . && turbo run lint",
+        "clean": "git clean -dfx"
     },
     "devDependencies": {
-        "prettier": "^3.2.5",
-        "prettier-plugin-svelte": "^3.2.2",
+        "prettier": "^3.3.3",
+        "prettier-plugin-svelte": "^3.2.5",
         "turbo": "^2.0.6"
     },
     "engines": {

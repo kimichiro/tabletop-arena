@@ -1,14 +1,16 @@
 import 'reflect-metadata'
 
-import config from '@colyseus/tools'
 import { monitor } from '@colyseus/monitor'
 import { playground } from '@colyseus/playground'
+import { default as tools } from '@colyseus/tools'
 import dayjs from 'dayjs'
 import durationPlugin from 'dayjs/plugin/duration'
 import { container } from 'tsyringe'
 
 import packageJson from '../package.json'
 import games from './games'
+
+const { default: config } = tools as unknown as typeof import('@colyseus/tools')
 
 export default config({
     initializeGameServer: (gameServer) => {
