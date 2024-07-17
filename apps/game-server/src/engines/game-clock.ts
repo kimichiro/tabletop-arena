@@ -21,7 +21,7 @@ export interface CountdownTimer extends Timer {
     decrease: (timeout: number) => void
 }
 
-export class GameTimer {
+export class GameClock {
     #clock: Clock
 
     constructor(clock: Clock) {
