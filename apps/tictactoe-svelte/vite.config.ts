@@ -5,8 +5,8 @@ export default defineConfig({
     plugins: [sveltekit()],
     test: {
         coverage: {
-            reporter: ['json', 'html'],
+            reporter: ['json', 'html']
         },
-        include: ['src/**/*.test.ts'],
+        include: ['src/**/*.test.ts']
     }
 })

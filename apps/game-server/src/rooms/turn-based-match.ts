@@ -53,7 +53,9 @@ export class TurnBasedMatch extends Room {
     }
 
     async onJoin(client: Client, _?: unknown, idToken?: IdToken): Promise<void> {
-        logger.info(`[${this.roomId}][${client.sessionId}] join: room capacity ${this.clients.length}/${this.maxClients}`)
+        logger.info(
+            `[${this.roomId}][${client.sessionId}] join: room capacity ${this.clients.length}/${this.maxClients}`
+        )
 
         if (idToken == null) {
             client.leave()
