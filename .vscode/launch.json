@@ -22,7 +22,10 @@
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/node_modules/.bin/mocha",
             "cwd": "${workspaceFolder}/apps/game-server",
-            "args": ["-r", "tsx", "test/**.test.ts", "--exit", "--timeout", "15000"]
+            "args": ["-r", "tsx", "test/**.test.ts", "--exit", "--timeout", "15000"],
+            "console": "integratedTerminal",
+            "smartStep": true,
+            "autoAttachChildProcesses": true
         },
         {
             "type": "node",
@@ -42,7 +45,10 @@
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/node_modules/.bin/vitest",
             "cwd": "${workspaceFolder}/apps/tictactoe-svelte",
-            "args": ["run"]
+            "args": ["related", "${workspaceFolder}/${relativeFile}", "--run"],
+            "console": "integratedTerminal",
+            "smartStep": true,
+            "autoAttachChildProcesses": true
         }
     ]
 }

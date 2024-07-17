@@ -1,13 +1,12 @@
 {
     "name": "@tabletop-arena/game-server",
     "version": "0.0.1",
-    "type": "module",
     "private": true,
     "engines": {
         "node": ">=20"
     },
     "scripts": {
-        "start": "node build/src/index.js",
+        "start": "node build/index.js",
         "dev": "tsx --watch src/index.ts",
         "build": "tsc --project tsconfig.json",
         "lint": "prettier --write . && eslint .",

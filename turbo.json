@@ -2,6 +2,9 @@
     "$schema": "https://turbo.build/schema.json",
     "globalEnv": ["NODE_ENV"],
     "tasks": {
+        "start": {
+            "dependsOn": ["build", "^start"]
+        },
         "build": {
             "dependsOn": ["^build"],
             "inputs": ["$TURBO_DEFAULT$", ".env*"],

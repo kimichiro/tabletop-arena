@@ -2,7 +2,7 @@
     "extends": "@tabletop-arena/typescript-config",
     "compilerOptions": {
         "target": "esnext",
-        "module": "esnext",
+        "module": "commonjs",
         "moduleResolution": "node",
         "outDir": "build",
 
