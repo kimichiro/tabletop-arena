@@ -41,15 +41,3 @@ export async function handleFetch({ request, fetch }) {
 
     return fetch(request)
 }
-
-const translated: Record<string, string> = {
-    '/item/number': '/item/123456',
-    '/item/aphanum': '/item/abc123'
-}
-
-/** @type {import('@sveltejs/kit').Reroute} */
-export function reroute({ url }) {
-    if (url.pathname in translated) {
-        return translated[url.pathname]
-    }
-}

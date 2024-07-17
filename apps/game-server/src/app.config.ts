@@ -29,8 +29,8 @@ export default config({
          * Read more: https://expressjs.com/en/starter/basic-routing.html
          */
         app.get('/version', (req, res) => {
-            const { version } = packageJson
-            res.send(version)
+            const { name, version } = packageJson
+            res.json({ name, version })
         })
 
         /**

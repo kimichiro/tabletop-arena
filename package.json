@@ -8,6 +8,7 @@
         "build": "turbo run build",
         "dev": "turbo run dev",
         "lint": "prettier --write . && turbo run lint",
+        "test": "turbo run test",
         "clean": "git clean -dfx"
     },
     "devDependencies": {
@@ -19,6 +20,6 @@
     "workspaces": [
         "apps/*",
         "packages/*",
-        "packages/config/*"
+        "config/*"
     ]
 }

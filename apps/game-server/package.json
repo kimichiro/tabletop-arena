@@ -10,10 +10,9 @@
         "start": "node build/src/index.js",
         "dev": "tsx --watch src/index.ts",
         "build": "tsc --project tsconfig.json",
+        "lint": "prettier --write . && eslint .",
         "test": "mocha -r tsx test/**.test.ts --exit --timeout 15000",
-        "loadtest:myroom": "tsx loadtest/index.ts --room myroom --numClients 2",
-        "loadtest:tictactoe": "tsx loadtest/index.ts --room tictactoe --numClients 1000",
-        "lint": "prettier --write . && eslint ."
+        "loadtest:tictactoe": "tsx loadtest/index.ts --room tictactoe --numClients 1000"
     },
     "dependencies": {
         "@colyseus/monitor": "^0.15.7",

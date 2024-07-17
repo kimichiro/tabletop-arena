@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Debug App - Game Server",
+            "name": "Game Server - App",
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/node_modules/.bin/tsx",
             "cwd": "${workspaceFolder}/apps/game-server",
@@ -18,13 +18,31 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Debug App - TicTacToe Svelte",
+            "name": "Game Server - Test",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/node_modules/.bin/mocha",
+            "cwd": "${workspaceFolder}/apps/game-server",
+            "args": ["-r", "tsx", "test/**.test.ts", "--exit", "--timeout", "15000"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "TicTacToe Svelte - App",
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/node_modules/.bin/vite",
             "cwd": "${workspaceFolder}/apps/tictactoe-svelte",
             "args": ["dev"],
             "outFiles": ["${cwd}/**/*.js"],
             "sourceMaps": true
-        }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "TicTacToe Svelte - Test",
+            "skipFiles": ["<node_internals>/**"],
+            "program": "${workspaceFolder}/node_modules/.bin/vitest",
+            "cwd": "${workspaceFolder}/apps/tictactoe-svelte",
+            "args": ["run"]
+        },
     ]
 }

@@ -1,5 +1,5 @@
-import { Client, Room } from 'colyseus.js'
 import { Options } from '@colyseus/loadtest'
+import { Client, Room } from 'colyseus.js'
 
 async function delay(timeout: number) {
     return new Promise<void>((resolve) => {

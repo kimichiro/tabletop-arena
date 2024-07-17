@@ -1,4 +1,4 @@
-import { Client, Room } from '@colyseus/core'
+import { Client, logger, Room } from '@colyseus/core'
 import { IncomingMessage } from 'http'
 import { container } from 'tsyringe'
 
@@ -53,7 +53,7 @@ export class TurnBasedMatch extends Room {
     }
 
     async onJoin(client: Client, _?: unknown, idToken?: IdToken): Promise<void> {
-        console.info(`${this.roomId}#${client.sessionId} join: room capacity ${this.clients.length}/${this.maxClients}`)
+        logger.info(`[${this.roomId}][${client.sessionId}] join: room capacity ${this.clients.length}/${this.maxClients}`)
 
         if (idToken == null) {
             client.leave()
@@ -69,8 +69,8 @@ export class TurnBasedMatch extends Room {
     }
 
     async onLeave(client: Client, consented: boolean): Promise<void> {
-        console.info(
-            `${this.roomId}#${client.sessionId} leave(${consented}): room capacity ${this.clients.length}/${this.maxClients}`
+        logger.info(
+            `[${this.roomId}][${client.sessionId}] leave(${consented}): room capacity ${this.clients.length}/${this.maxClients}`
         )
 
         const participant = this.#engine.context.participants.find(({ id }) => id === client.sessionId)
@@ -95,7 +95,7 @@ export class TurnBasedMatch extends Room {
                 }
                 return
             } catch (error) {
-                console.warn(`${this.roomId}#${client.sessionId} reconnection: ${error}`)
+                logger.warn(`[${this.roomId}][${client.sessionId}] reconnection: ${error}`)
             }
         }
     }
@@ -110,8 +110,8 @@ export class TurnBasedMatch extends Room {
     }
 
     private async onMatchAsk(client: Client, _: MatchAskPayload): Promise<void> {
-        console.info(
-            `${this.roomId}#${client.sessionId} ${MatchAskMessageType}: room capacity ${this.clients.length}/${this.maxClients}`
+        logger.info(
+            `[${this.roomId}][${client.sessionId}] ${MatchAskMessageType}: room capacity ${this.clients.length}/${this.maxClients}`
         )
 
         if (!this.#engine.context.started) {
@@ -131,21 +131,21 @@ export class TurnBasedMatch extends Room {
                     // set flag to avoid joining in-progress game room from lobby
                     await this.setMetadata({ started: true })
                 } catch (error) {
-                    console.warn(`${this.roomId}#${client.sessionId} ${MatchAskMessageType}: ${error}`)
+                    logger.warn(`[${this.roomId}][${client.sessionId}] ${MatchAskMessageType}: ${error}`)
                 }
             }
         }
     }
 
     private onGameMove(client: Client, payload: GameMovePayload): void {
-        console.info(`${this.roomId}#${client.sessionId} ${GameMoveMessageType}:`)
+        logger.info(`[${this.roomId}][${client.sessionId}] ${GameMoveMessageType}:`)
 
         const { action } = payload
 
         try {
             this.#engine.move(client, action)
         } catch (error) {
-            console.warn(`${this.roomId}#${client.sessionId} ${GameMoveMessageType}: ${error}`)
+            logger.warn(`[${this.roomId}][${client.sessionId}] ${GameMoveMessageType}: ${error}`)
         }
     }
 }
