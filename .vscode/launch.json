@@ -20,9 +20,9 @@
             "request": "launch",
             "name": "Game Server - Test",
             "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/node_modules/.bin/mocha",
+            "program": "${workspaceFolder}/node_modules/.bin/jest",
             "cwd": "${workspaceFolder}/apps/game-server",
-            "args": ["-r", "tsx", "test/**.test.ts", "--exit", "--timeout", "15000"],
+            "args": ["--runInBand"],
             "console": "integratedTerminal",
             "smartStep": true,
             "autoAttachChildProcesses": true

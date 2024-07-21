@@ -10,7 +10,7 @@
         "dev": "tsx --watch src/index.ts",
         "build": "tsc --project tsconfig.json",
         "lint": "prettier --write . && eslint .",
-        "test": "mocha -r tsx test/**.test.ts --exit --timeout 15000",
+        "test": "jest --runInBand",
         "loadtest:tictactoe": "tsx loadtest/index.ts --room tictactoe --numClients 1000"
     },
     "dependencies": {
@@ -26,18 +26,19 @@
     "devDependencies": {
         "@colyseus/loadtest": "^0.15.3",
         "@colyseus/testing": "^0.15.3",
+        "@jest/globals": "^29.7.0",
         "@tabletop-arena/eslint-config": "^0.0.0",
         "@tabletop-arena/typescript-config": "^0.0.0",
         "@types/eslint": "^8.56.10",
         "@types/express": "^4.17.21",
-        "@types/mocha": "^10.0.7",
         "@types/node": "^20.14.10",
         "@typescript-eslint/eslint-plugin": "^7.16.0",
         "@typescript-eslint/parser": "^7.16.0",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
-        "mocha": "^10.6.0",
+        "jest": "^29.7.0",
         "prettier": "^3.3.3",
+        "ts-jest": "^29.2.3",
         "tsx": "^4.16.2",
         "typescript": "^5.5.3"
     }
