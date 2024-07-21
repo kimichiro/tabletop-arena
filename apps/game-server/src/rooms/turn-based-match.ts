@@ -4,7 +4,7 @@ import { container } from 'tsyringe'
 
 import { IdToken } from '../auth'
 import { GameClock } from '../engines/game-clock'
-import { GameAction, TurnBasedEngine } from '../engines/turn-based-engine'
+import { GameAction, GameSettings, TurnBasedEngine } from '../engines/turn-based-engine'
 
 // #region Client messages
 
@@ -26,6 +26,11 @@ export interface GameStartedPayload {}
 export const GameEndedMessageType = 'game-ended'
 export interface GameEndedPayload {}
 
+export const GameMoveErrorMessageType = 'game-move-error'
+export interface GameMoveErrorPayload {
+    message: string
+}
+
 // #endregion
 
 export class TurnBasedMatch extends Room {
@@ -38,11 +43,11 @@ export class TurnBasedMatch extends Room {
         return JSON.parse(Buffer.from(token, 'base64').toString())
     }
 
-    onCreate(options?: unknown): void {
+    onCreate(options?: GameSettings): void {
         this.#engine = container.resolve(this.roomName)
         this.setState(this.#engine.state)
 
-        this.#engine.init(this.#clock, options ?? {})
+        this.#engine.init(this.#clock, options)
 
         // Setup event handling
         this.onMessage(MatchAskMessageType, this.onMatchAsk.bind(this))
@@ -148,6 +153,11 @@ export class TurnBasedMatch extends Room {
             this.#engine.move(client, action)
         } catch (error) {
             logger.warn(`[${this.roomId}][${client.sessionId}] ${GameMoveMessageType}: ${error}`)
+
+            const message: GameMoveErrorPayload = {
+                message: error instanceof Error ? error.message : `${error}`
+            }
+            client.send(GameMoveErrorMessageType, message)
         }
     }
 }

@@ -22,7 +22,7 @@
             "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}/node_modules/.bin/jest",
             "cwd": "${workspaceFolder}/apps/game-server",
-            "args": ["--runInBand"],
+            "args": ["--runInBand", "${workspaceFolder}/${relativeFile}"],
             "console": "integratedTerminal",
             "smartStep": true,
             "autoAttachChildProcesses": true

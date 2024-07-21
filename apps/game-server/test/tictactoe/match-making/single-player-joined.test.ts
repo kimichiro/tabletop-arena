@@ -6,12 +6,8 @@ import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
 import { MatchAskMessageType } from '../../../src/rooms/turn-based-match'
-
-const ROOM_NAME = `tictactoe`
-const ROOM_MAX_CLIENTS = 2
-
-const USER_101_ID = `101`
-const USER_101_NAME = `user101`
+import { AUTH_USER_101_ID, AUTH_USER_101_NAME, toJSON } from '../../auth'
+import { ROOM_MAX_CLIENTS, ROOM_NAME } from '../game-config'
 
 describe(`TicTacToe / match-making / single player joined`, () => {
     let colyseus: ColyseusTestServer
@@ -22,18 +18,20 @@ describe(`TicTacToe / match-making / single player joined`, () => {
         colyseus = await boot(appConfig)
     })
     afterAll(async () => {
+        await client1.leave()
+
         await colyseus.shutdown()
     })
 
     it(`game server creates room for ${ROOM_NAME}`, async () => {
-        room = await colyseus.createRoom(ROOM_NAME, {})
+        room = await colyseus.createRoom(ROOM_NAME, { roleAssignStrategy: 'fifo' })
 
         expect(room.roomName).toStrictEqual(ROOM_NAME)
         expect(room.maxClients).toStrictEqual(ROOM_MAX_CLIENTS)
     })
 
     it(`game client connects to the room`, async () => {
-        colyseus.sdk.auth.token = Buffer.from(JSON.stringify({ id: USER_101_ID, name: USER_101_NAME })).toString('base64')
+        colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_101_ID, name: AUTH_USER_101_NAME })
         client1 = await colyseus.connectTo(room)
 
         expect(client1.sessionId).toStrictEqual(room.clients[0].sessionId)

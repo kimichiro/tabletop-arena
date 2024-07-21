@@ -31,8 +31,11 @@ export abstract class GameEngine<State extends Schema, Context extends GameConte
         return this.#settings
     }
 
-    init(clock: GameClock, settings: Settings): void {
-        this.#settings = settings
+    init(clock: GameClock, settings?: Settings): void {
+        this.#settings = {
+            ...this.#settings,
+            ...settings
+        }
         this.clock = clock
 
         this.onInit()

@@ -94,7 +94,11 @@ export class GameState<
     }
 }
 
-export interface GameSettings {}
+export type RoleAssignStrategy = 'fifo' | 'random'
+
+export interface GameSettings {
+    roleAssignStrategy: RoleAssignStrategy
+}
 
 export type ResultCallback = () => void
 

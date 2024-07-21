@@ -6,15 +6,8 @@ import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
 import { MatchAskMessageType } from '../../../src/rooms/turn-based-match'
-
-const ROOM_NAME = `tictactoe`
-const ROOM_MAX_CLIENTS = 2
-
-const USER_101_ID = `101`
-const USER_101_NAME = `user101`
-
-const USER_102_ID = `102`
-const USER_102_NAME = `user102`
+import { AUTH_USER_101_ID, AUTH_USER_101_NAME, AUTH_USER_102_ID, AUTH_USER_102_NAME, toJSON } from '../../auth'
+import { ROOM_MAX_CLIENTS, ROOM_NAME } from '../game-config'
 
 describe(`TicTacToe / match-making / two players joined`, () => {
     let colyseus: ColyseusTestServer
@@ -26,18 +19,21 @@ describe(`TicTacToe / match-making / two players joined`, () => {
         colyseus = await boot(appConfig)
     })
     afterAll(async () => {
+        await client1.leave()
+        await client2.leave()
+
         await colyseus.shutdown()
     })
 
     it(`game server creates room for ${ROOM_NAME}`, async () => {
-        room = await colyseus.createRoom(ROOM_NAME, { foo: 111 })
+        room = await colyseus.createRoom(ROOM_NAME, { roleAssignStrategy: 'fifo' })
 
         expect(room.roomName).toStrictEqual(ROOM_NAME)
         expect(room.maxClients).toStrictEqual(ROOM_MAX_CLIENTS)
     })
 
     it(`first player connects to the room`, async () => {
-        colyseus.sdk.auth.token = Buffer.from(JSON.stringify({ id: USER_101_ID, name: USER_101_NAME })).toString('base64')
+        colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_101_ID, name: AUTH_USER_101_NAME })
         client1 = await colyseus.connectTo(room)
 
         expect(client1.sessionId).toStrictEqual(room.clients[0].sessionId)
@@ -77,7 +73,7 @@ describe(`TicTacToe / match-making / two players joined`, () => {
     })
 
     it(`second player connects to the room`, async () => {
-        colyseus.sdk.auth.token = Buffer.from(JSON.stringify({ id: USER_102_ID, name: USER_102_NAME })).toString('base64')
+        colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_102_ID, name: AUTH_USER_102_NAME })
         client2 = await colyseus.connectTo(room)
 
         expect(client2.sessionId).toStrictEqual(room.clients[1].sessionId)
@@ -106,17 +102,7 @@ describe(`TicTacToe / match-making / two players joined`, () => {
 
         expect(client2.state.toJSON()).toMatchObject({
             area: {
-                actions: expect.arrayContaining([
-                    { position:  'a1', role: 'X' },
-                    { position:  'a2', role: 'X' },
-                    { position:  'a3', role: 'X' },
-                    { position:  'b1', role: 'X' },
-                    { position:  'b2', role: 'X' },
-                    { position:  'b3', role: 'X' },
-                    { position:  'c1', role: 'X' },
-                    { position:  'c2', role: 'X' },
-                    { position:  'c3', role: 'X' }
-                ]),
+                actions: [],
                 table: {}
             },
             currentTurn: {
@@ -130,7 +116,7 @@ describe(`TicTacToe / match-making / two players joined`, () => {
                     minutes: 0,
                     seconds: 30
                 },
-                role: expect.any(String),
+                role: 'X',
                 userId: expect.any(String)
             },
             moves: [],
@@ -146,7 +132,7 @@ describe(`TicTacToe / match-making / two players joined`, () => {
                         minutes: 0,
                         seconds: 30
                     },
-                    role: expect.any(String),
+                    role: 'X',
                     userId: expect.any(String)
                 },
                 {
@@ -160,11 +146,77 @@ describe(`TicTacToe / match-making / two players joined`, () => {
                         minutes: 0,
                         seconds: 30
                     },
-                    role: expect.any(String),
+                    role: 'O',
                     userId: expect.any(String)
-                },
+                }
             ]),
             result: {}
+        })
+    })
+
+    it(`game server updates to initial state`, async () => {
+        await room.waitForNextPatch()
+
+        expect(room.state.toJSON()).toMatchObject({
+            area: {
+                actions: expect.arrayContaining([
+                    { position: 'a1', role: 'X' },
+                    { position: 'a2', role: 'X' },
+                    { position: 'a3', role: 'X' },
+                    { position: 'b1', role: 'X' },
+                    { position: 'b2', role: 'X' },
+                    { position: 'b3', role: 'X' },
+                    { position: 'c1', role: 'X' },
+                    { position: 'c2', role: 'X' },
+                    { position: 'c3', role: 'X' }
+                ]),
+                table: {}
+            },
+            currentTurn: {
+                connection: {
+                    status: 'online'
+                },
+                id: expect.any(String),
+                name: expect.any(String),
+                remainingTime: {
+                    asMilliseconds: 30000,
+                    minutes: 0,
+                    seconds: 30
+                },
+                role: 'X',
+                userId: expect.any(String)
+            },
+            moves: [],
+            participants: expect.arrayContaining([
+                {
+                    connection: {
+                        status: 'online'
+                    },
+                    id: expect.any(String),
+                    name: expect.any(String),
+                    remainingTime: {
+                        asMilliseconds: 30000,
+                        minutes: 0,
+                        seconds: 30
+                    },
+                    role: 'X',
+                    userId: expect.any(String)
+                },
+                {
+                    connection: {
+                        status: 'online'
+                    },
+                    id: expect.any(String),
+                    name: expect.any(String),
+                    remainingTime: {
+                        asMilliseconds: 30000,
+                        minutes: 0,
+                        seconds: 30
+                    },
+                    role: 'O',
+                    userId: expect.any(String)
+                }
+            ])
         })
     })
 })

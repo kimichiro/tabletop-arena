@@ -80,7 +80,7 @@ class Player extends GameParticipant {
 @injectable()
 export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
     constructor() {
-        super(new GameState<Action, Area, Player>(new Area()), {})
+        super(new GameState<Action, Area, Player>(new Area()), { roleAssignStrategy: 'fifo' })
     }
 
     protected onInit(): void {
@@ -110,10 +110,16 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
 
     protected onNewParticipant(id: string, userId: string, name: string): Player {
         const player = new Player(id, name, userId)
-        if (this.context.participants.length === 0) {
-            player.role = Math.round(Math.random()) === 0 ? Role.Ex : Role.Oh
+
+        const { roleAssignStrategy } = this.settings
+        if (roleAssignStrategy === 'fifo') {
+            player.role = this.context.participants.length === 0 ? Role.Ex : Role.Oh
         } else {
-            player.role = this.context.participants.some(({ role }) => role === Role.Ex) ? Role.Oh : Role.Ex
+            if (this.context.participants.length === 0) {
+                player.role = Math.round(Math.random()) === 0 ? Role.Ex : Role.Oh
+            } else {
+                player.role = this.context.participants.some(({ role }) => role === Role.Ex) ? Role.Oh : Role.Ex
+            }
         }
 
         return player
