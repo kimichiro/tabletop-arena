@@ -2,14 +2,14 @@ import { Room } from '@colyseus/core'
 import { Schema } from '@colyseus/schema'
 import { constructor } from 'tsyringe/dist/typings/types'
 
-import { GameContext, GameEngine } from '../engines/game-engine'
+import { GameEngine } from '../engines/game-engine'
 import { TurnBasedMatch } from '../rooms/turn-based-match'
 import { TicTacToeEngine } from './tictactoe/engine'
 
 interface Game {
     name: string
     room: constructor<Room>
-    engine: constructor<GameEngine<Schema, GameContext, object>>
+    engine: constructor<GameEngine<Schema, object, object>>
 }
 
 export default [

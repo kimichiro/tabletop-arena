@@ -1,30 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { GameEndedMessageType, GameStartedMessageType } from '@tabletop-arena/schema'
+import type { GameEndedPayload, GameMovePayload, GameStartedPayload, MatchAskPayload } from '@tabletop-arena/schema'
+
 import type { Room } from 'colyseus.js'
 import { EventEmitter } from 'eventemitter3'
 import type { GameClient } from './game-client'
-
-// #region Client messages
-
-export const MatchAskMessageType = 'match-ask'
-export interface MatchAskPayload {}
-
-export const GameMoveMessageType = 'game-move'
-export interface GameMovePayload<Action = unknown> {
-    action: Action
-}
-
-// #endregion
-
-// #region Server messages
-
-export const GameStartedMessageType = 'game-started'
-export interface GameStartedPayload {}
-
-export const GameEndedMessageType = 'game-ended'
-export interface GameEndedPayload {}
-
-// #endregion
 
 export class GameMatch<State> {
     #client: GameClient

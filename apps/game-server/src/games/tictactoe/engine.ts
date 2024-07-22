@@ -1,33 +1,8 @@
-import { ArraySchema, filterChildren, MapSchema, type } from '@colyseus/schema'
-import { Client } from 'colyseus'
+import { ArraySchema } from '@colyseus/schema'
+import { Action, Area, GameMove, GameResult, GameState, Player, Position, Role } from '@tabletop-arena/schema'
 import { injectable } from 'tsyringe'
 
-import {
-    GameAction,
-    GameArea,
-    GameMove,
-    GameParticipant,
-    GameResult,
-    GameState,
-    TurnBasedEngine
-} from '../../engines/turn-based-engine'
-
-enum Role {
-    Ex = 'X',
-    Oh = 'O'
-}
-
-enum Position {
-    A1 = 'a1',
-    A2 = 'a2',
-    A3 = 'a3',
-    B1 = 'b1',
-    B2 = 'b2',
-    B3 = 'b3',
-    C1 = 'c1',
-    C2 = 'c2',
-    C3 = 'c3'
-}
+import { TurnBasedEngine } from '../../engines/turn-based-engine'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.A1, Position.A2, Position.A3],
@@ -41,41 +16,6 @@ const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.A1, Position.B2, Position.C3],
     [Position.A3, Position.B2, Position.C1]
 ]
-
-class Action extends GameAction {
-    @type('string') role: Role
-    @type('string') position: Position
-
-    constructor(role: Role, position: Position) {
-        super()
-
-        this.role = role
-        this.position = position
-    }
-}
-
-class Area extends GameArea<Action> {
-    @type({ map: 'string' }) table: MapSchema<Role, Position> = new MapSchema<Role, Position>()
-
-    @filterChildren(function (
-        this: Area,
-        client: Client,
-        _: string,
-        value: Action,
-        root: GameState<Action, Area, Player>
-    ) {
-        return (
-            client.sessionId === root.currentTurn?.id &&
-            value.role === root.currentTurn?.role &&
-            this.table.get(value.position) == null
-        )
-    })
-    actions: ArraySchema<Action> = new ArraySchema<Action>()
-}
-
-class Player extends GameParticipant {
-    @type('string') role: Role = Role.Ex
-}
 
 @injectable()
 export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {

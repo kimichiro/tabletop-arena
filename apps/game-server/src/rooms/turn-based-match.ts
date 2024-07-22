@@ -1,37 +1,22 @@
 import { Client, logger, Room } from '@colyseus/core'
+import {
+    GameEndedMessageType,
+    GameEndedPayload,
+    GameMoveErrorMessageType,
+    GameMoveErrorPayload,
+    GameMoveMessageType,
+    GameMovePayload,
+    GameStartedMessageType,
+    GameStartedPayload,
+    MatchAskMessageType,
+    MatchAskPayload
+} from '@tabletop-arena/schema'
 import { IncomingMessage } from 'http'
 import { container } from 'tsyringe'
 
 import { IdToken } from '../auth'
 import { GameClock } from '../engines/game-clock'
-import { GameAction, GameSettings, TurnBasedEngine } from '../engines/turn-based-engine'
-
-// #region Client messages
-
-export const MatchAskMessageType = 'match-ask'
-export interface MatchAskPayload {}
-
-export const GameMoveMessageType = 'game-move'
-export interface GameMovePayload<Action extends GameAction = GameAction> {
-    action: Action
-}
-
-// #endregion
-
-// #region Server messages
-
-export const GameStartedMessageType = 'game-started'
-export interface GameStartedPayload {}
-
-export const GameEndedMessageType = 'game-ended'
-export interface GameEndedPayload {}
-
-export const GameMoveErrorMessageType = 'game-move-error'
-export interface GameMoveErrorPayload {
-    message: string
-}
-
-// #endregion
+import { GameSettings, TurnBasedEngine } from '../engines/turn-based-engine'
 
 export class TurnBasedMatch extends Room {
     #engine!: TurnBasedEngine

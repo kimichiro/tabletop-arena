@@ -4,9 +4,7 @@ import { Schema } from '@colyseus/schema'
 import { IdToken } from '../auth'
 import { GameClock } from './game-clock'
 
-export interface GameContext {}
-
-export abstract class GameEngine<State extends Schema, Context extends GameContext, Settings extends object> {
+export abstract class GameEngine<State extends Schema, Context extends object, Settings extends object> {
     #state: State
     #context: Context
     #settings: Settings
