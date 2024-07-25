@@ -2,10 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
+import { MatchAskMessageType } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
-import { MatchAskMessageType } from '../../../src/rooms/turn-based-match'
 import { AUTH_USER_101_ID, AUTH_USER_101_NAME, toJSON } from '../../auth'
 import { ROOM_MAX_CLIENTS, ROOM_NAME } from '../game-config'
 

@@ -17,6 +17,7 @@ import { container } from 'tsyringe'
 import { IdToken } from '../auth'
 import { GameClock } from '../engines/game-clock'
 import { GameSettings, TurnBasedEngine } from '../engines/turn-based-engine'
+import { Action, ActionSchema } from '@tabletop-arena/game-schema'
 
 export class TurnBasedMatch extends Room {
     #engine!: TurnBasedEngine
@@ -129,13 +130,13 @@ export class TurnBasedMatch extends Room {
         }
     }
 
-    private onGameMove(client: Client, payload: GameMovePayload): void {
+    private onGameMove(client: Client, payload: GameMovePayload<Action>): void {
         logger.info(`[${this.roomId}][${client.sessionId}] ${GameMoveMessageType}:`)
 
         const { action } = payload
 
         try {
-            this.#engine.move(client, action)
+            this.#engine.move(client, new ActionSchema(action.role, action.position))
         } catch (error) {
             logger.warn(`[${this.roomId}][${client.sessionId}] ${GameMoveMessageType}: ${error}`)
 

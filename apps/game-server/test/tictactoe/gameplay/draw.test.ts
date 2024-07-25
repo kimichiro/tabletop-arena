@@ -2,10 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
+import { GameMoveMessageType, MatchAskMessageType } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
-import { GameMoveMessageType, MatchAskMessageType } from '../../../src/rooms/turn-based-match'
 import { AUTH_USER_101_ID, AUTH_USER_101_NAME, AUTH_USER_102_ID, AUTH_USER_102_NAME, toJSON } from '../../auth'
 import { ROOM_NAME } from '../game-config'
 
@@ -41,15 +41,15 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a1', role: 'X' },
-                    { position: 'a2', role: 'X' },
-                    { position: 'a3', role: 'X' },
-                    { position: 'b1', role: 'X' },
-                    { position: 'b2', role: 'X' },
-                    { position: 'b3', role: 'X' },
-                    { position: 'c1', role: 'X' },
-                    { position: 'c2', role: 'X' },
-                    { position: 'c3', role: 'X' }
+                    { position: 'TL', role: 'X' },
+                    { position: 'TC', role: 'X' },
+                    { position: 'TR', role: 'X' },
+                    { position: 'CL', role: 'X' },
+                    { position: 'CC', role: 'X' },
+                    { position: 'CR', role: 'X' },
+                    { position: 'BL', role: 'X' },
+                    { position: 'BC', role: 'X' },
+                    { position: 'BR', role: 'X' }
                 ]),
                 table: {}
             },
@@ -101,9 +101,9 @@ describe(`TicTacToe / gameplay / draw`, () => {
         })
     })
 
-    it(`'X' player moves on position 'b2'`, async () => {
+    it(`'X' player moves on position 'CC'`, async () => {
         client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'b2' }
+            action: { role: 'X', position: 'CC' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -112,27 +112,29 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a1', role: 'O' },
-                    { position: 'a2', role: 'O' },
-                    { position: 'a3', role: 'O' },
-                    { position: 'b1', role: 'O' },
-                    { position: 'b3', role: 'O' },
-                    { position: 'c1', role: 'O' },
-                    { position: 'c2', role: 'O' },
-                    { position: 'c3', role: 'O' }
+                    { position: 'TL', role: 'O' },
+                    { position: 'TC', role: 'O' },
+                    { position: 'TR', role: 'O' },
+                    { position: 'CL', role: 'O' },
+                    { position: 'CR', role: 'O' },
+                    { position: 'BL', role: 'O' },
+                    { position: 'BC', role: 'O' },
+                    { position: 'BR', role: 'O' }
                 ]),
                 table: {
-                    b2: 'X'
+                    CC: 'X'
                 }
             },
             currentTurn: expect.objectContaining({ role: 'O' }),
-            moves: expect.arrayContaining([{ notation: 'b2', participant: expect.objectContaining({ role: 'X' }) }])
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) }
+            ])
         })
     })
 
-    it(`'O' player moves on position 'a3'`, async () => {
+    it(`'O' player moves on position 'TR'`, async () => {
         client2.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'a3' }
+            action: { role: 'O', position: 'TR' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -141,30 +143,30 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a1', role: 'X' },
-                    { position: 'a2', role: 'X' },
-                    { position: 'b1', role: 'X' },
-                    { position: 'b3', role: 'X' },
-                    { position: 'c1', role: 'X' },
-                    { position: 'c2', role: 'X' },
-                    { position: 'c3', role: 'X' }
+                    { position: 'TL', role: 'X' },
+                    { position: 'TC', role: 'X' },
+                    { position: 'CL', role: 'X' },
+                    { position: 'CR', role: 'X' },
+                    { position: 'BL', role: 'X' },
+                    { position: 'BC', role: 'X' },
+                    { position: 'BR', role: 'X' }
                 ]),
                 table: {
-                    b2: 'X',
-                    a3: 'O'
+                    CC: 'X',
+                    TR: 'O'
                 }
             },
             currentTurn: expect.objectContaining({ role: 'X' }),
             moves: expect.arrayContaining([
-                { notation: 'b2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a3', participant: expect.objectContaining({ role: 'O' }) }
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) }
             ])
         })
     })
 
-    it(`'X' player moves on position 'a1'`, async () => {
+    it(`'X' player moves on position 'TL'`, async () => {
         client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'a1' }
+            action: { role: 'X', position: 'TL' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -173,31 +175,31 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a2', role: 'O' },
-                    { position: 'b1', role: 'O' },
-                    { position: 'b3', role: 'O' },
-                    { position: 'c1', role: 'O' },
-                    { position: 'c2', role: 'O' },
-                    { position: 'c3', role: 'O' }
+                    { position: 'TC', role: 'O' },
+                    { position: 'CL', role: 'O' },
+                    { position: 'CR', role: 'O' },
+                    { position: 'BL', role: 'O' },
+                    { position: 'BC', role: 'O' },
+                    { position: 'BR', role: 'O' }
                 ]),
                 table: {
-                    b2: 'X',
-                    a3: 'O',
-                    a1: 'X'
+                    CC: 'X',
+                    TR: 'O',
+                    TL: 'X'
                 }
             },
             currentTurn: expect.objectContaining({ role: 'O' }),
             moves: expect.arrayContaining([
-                { notation: 'b2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'a1', participant: expect.objectContaining({ role: 'X' }) }
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) }
             ])
         })
     })
 
-    it(`'O' player moves on position 'c3'`, async () => {
+    it(`'O' player moves on position 'BR'`, async () => {
         client2.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'c3' }
+            action: { role: 'O', position: 'BR' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -206,32 +208,32 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a2', role: 'X' },
-                    { position: 'b1', role: 'X' },
-                    { position: 'b3', role: 'X' },
-                    { position: 'c1', role: 'X' },
-                    { position: 'c2', role: 'X' }
+                    { position: 'TC', role: 'X' },
+                    { position: 'CL', role: 'X' },
+                    { position: 'CR', role: 'X' },
+                    { position: 'BL', role: 'X' },
+                    { position: 'BC', role: 'X' }
                 ]),
                 table: {
-                    b2: 'X',
-                    a3: 'O',
-                    a1: 'X',
-                    c3: 'O'
+                    CC: 'X',
+                    TR: 'O',
+                    TL: 'X',
+                    BR: 'O'
                 }
             },
             currentTurn: expect.objectContaining({ role: 'X' }),
             moves: expect.arrayContaining([
-                { notation: 'b2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'a1', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'c3', participant: expect.objectContaining({ role: 'O' }) }
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) }
             ])
         })
     })
 
-    it(`'X' player moves on position 'b3'`, async () => {
+    it(`'X' player moves on position 'CR'`, async () => {
         client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'b3' }
+            action: { role: 'X', position: 'CR' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -240,33 +242,33 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a2', role: 'O' },
-                    { position: 'b1', role: 'O' },
-                    { position: 'c1', role: 'O' },
-                    { position: 'c2', role: 'O' }
+                    { position: 'TC', role: 'O' },
+                    { position: 'CL', role: 'O' },
+                    { position: 'BL', role: 'O' },
+                    { position: 'BC', role: 'O' }
                 ]),
                 table: {
-                    b2: 'X',
-                    a3: 'O',
-                    a1: 'X',
-                    c3: 'O',
-                    b3: 'X'
+                    CC: 'X',
+                    TR: 'O',
+                    TL: 'X',
+                    BR: 'O',
+                    CR: 'X'
                 }
             },
             currentTurn: expect.objectContaining({ role: 'O' }),
             moves: expect.arrayContaining([
-                { notation: 'b2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'a1', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'c3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'b3', participant: expect.objectContaining({ role: 'X' }) }
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
+                { notation: 'CR', action: expect.objectContaining({ position: 'CR', role: 'X' }) }
             ])
         })
     })
 
-    it(`'O' player moves on position 'b1'`, async () => {
+    it(`'O' player moves on position 'CL'`, async () => {
         client2.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'b1' }
+            action: { role: 'O', position: 'CL' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -275,34 +277,34 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a2', role: 'X' },
-                    { position: 'c1', role: 'X' },
-                    { position: 'c2', role: 'X' }
+                    { position: 'TC', role: 'X' },
+                    { position: 'BL', role: 'X' },
+                    { position: 'BC', role: 'X' }
                 ]),
                 table: {
-                    b2: 'X',
-                    a3: 'O',
-                    a1: 'X',
-                    c3: 'O',
-                    b3: 'X',
-                    b1: 'O'
+                    CC: 'X',
+                    TR: 'O',
+                    TL: 'X',
+                    BR: 'O',
+                    CR: 'X',
+                    CL: 'O'
                 }
             },
             currentTurn: expect.objectContaining({ role: 'X' }),
             moves: expect.arrayContaining([
-                { notation: 'b2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'a1', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'c3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'b3', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'b1', participant: expect.objectContaining({ role: 'O' }) }
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
+                { notation: 'CR', action: expect.objectContaining({ position: 'CR', role: 'X' }) },
+                { notation: 'CL', action: expect.objectContaining({ position: 'CL', role: 'O' }) }
             ])
         })
     })
 
-    it(`'X' player moves on position 'c2'`, async () => {
+    it(`'X' player moves on position 'BC'`, async () => {
         client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'c2' }
+            action: { role: 'X', position: 'BC' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -311,35 +313,35 @@ describe(`TicTacToe / gameplay / draw`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a2', role: 'O' },
-                    { position: 'c1', role: 'O' }
+                    { position: 'TC', role: 'O' },
+                    { position: 'BL', role: 'O' }
                 ]),
                 table: {
-                    b2: 'X',
-                    a3: 'O',
-                    a1: 'X',
-                    c3: 'O',
-                    b3: 'X',
-                    b1: 'O',
-                    c2: 'X'
+                    CC: 'X',
+                    TR: 'O',
+                    TL: 'X',
+                    BR: 'O',
+                    CR: 'X',
+                    CL: 'O',
+                    BC: 'X'
                 }
             },
             currentTurn: expect.objectContaining({ role: 'O' }),
             moves: expect.arrayContaining([
-                { notation: 'b2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'a1', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'c3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'b3', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'b1', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'c2', participant: expect.objectContaining({ role: 'X' }) }
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
+                { notation: 'CR', action: expect.objectContaining({ position: 'CR', role: 'X' }) },
+                { notation: 'CL', action: expect.objectContaining({ position: 'CL', role: 'O' }) },
+                { notation: 'BC', action: expect.objectContaining({ position: 'BC', role: 'X' }) }
             ])
         })
     })
 
-    it(`'O' player moves on position 'a2'`, async () => {
+    it(`'O' player moves on position 'TC'`, async () => {
         client2.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'a2' }
+            action: { role: 'O', position: 'TC' }
         })
 
         await room.waitForMessage(GameMoveMessageType)
@@ -349,25 +351,25 @@ describe(`TicTacToe / gameplay / draw`, () => {
             area: {
                 actions: [],
                 table: {
-                    b2: 'X',
-                    a3: 'O',
-                    a1: 'X',
-                    c3: 'O',
-                    b3: 'X',
-                    b1: 'O',
-                    c2: 'X',
-                    a2: 'O'
+                    CC: 'X',
+                    TR: 'O',
+                    TL: 'X',
+                    BR: 'O',
+                    CR: 'X',
+                    CL: 'O',
+                    BC: 'X',
+                    TC: 'O'
                 }
             },
             moves: expect.arrayContaining([
-                { notation: 'b2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'a1', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'c3', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'b3', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'b1', participant: expect.objectContaining({ role: 'O' }) },
-                { notation: 'c2', participant: expect.objectContaining({ role: 'X' }) },
-                { notation: 'a2', participant: expect.objectContaining({ role: 'O' }) }
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
+                { notation: 'CR', action: expect.objectContaining({ position: 'CR', role: 'X' }) },
+                { notation: 'CL', action: expect.objectContaining({ position: 'CL', role: 'O' }) },
+                { notation: 'BC', action: expect.objectContaining({ position: 'BC', role: 'X' }) },
+                { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) }
             ]),
             result: {
                 draw: true

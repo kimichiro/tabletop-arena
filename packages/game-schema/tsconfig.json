@@ -1,0 +1,9 @@
+{
+    "extends": "@tabletop-arena/typescript-config",
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "useDefineForClassFields": false
+    },
+    "include": ["./src/**/*.ts"]
+}

@@ -3,21 +3,23 @@
 
     import { onMount } from 'svelte'
 
+    import { ArraySchema, MapSchema } from '@colyseus/schema'
+    import { Position, Role } from '@tabletop-arena/game-schema'
+    import type { TicTacToeState } from '@tabletop-arena/game-schema'
+
     import { beforeNavigate, goto } from '$app/navigation'
     import { initGameContext } from '$lib/context/game-context'
-    import { Position, Role } from '$lib/game/schema/tictactoe'
-    import type { GameState } from '$lib/game/schema/tictactoe'
 
     import type { PageData } from './$types'
 
     export let data: PageData
 
-    const gameContext = initGameContext<GameState>({ authToken: data.gameToken })
+    const gameContext = initGameContext<TicTacToeState>({ authToken: data.gameToken })
     const gameStore = gameContext.getStore('tictactoe', {
-        area: { table: {}, actions: [] },
-        participants: [],
+        area: { table: new MapSchema(), actions: new ArraySchema() },
+        participants: new ArraySchema(),
         currentTurn: null,
-        moves: [],
+        moves: new ArraySchema(),
         result: null
     })
 
@@ -34,8 +36,8 @@
         const { roomId, state } = $gameStore
         return (
             roomId != null &&
-            state.area?.table?.[position] == null &&
-            state.area?.actions?.some((action) => action.position === position)
+            state.area.table.get(position) == null &&
+            state.area.actions.some((action) => action.position === position)
         )
     }
 
@@ -43,15 +45,15 @@
         goto('/match')
     }
 
-    const cellA1Action = onCellAction.bind(null, Position.A1)
-    const cellB1Action = onCellAction.bind(null, Position.B1)
-    const cellC1Action = onCellAction.bind(null, Position.C1)
-    const cellA2Action = onCellAction.bind(null, Position.A2)
-    const cellB2Action = onCellAction.bind(null, Position.B2)
-    const cellC2Action = onCellAction.bind(null, Position.C2)
-    const cellA3Action = onCellAction.bind(null, Position.A3)
-    const cellB3Action = onCellAction.bind(null, Position.B3)
-    const cellC3Action = onCellAction.bind(null, Position.C3)
+    const cellTopLeftAction = onCellAction.bind(null, Position.TopLeft)
+    const cellCenterLeftAction = onCellAction.bind(null, Position.CenterLeft)
+    const cellBottomLeftAction = onCellAction.bind(null, Position.BottomLeft)
+    const cellTopCenterAction = onCellAction.bind(null, Position.TopCenter)
+    const cellCenterCenterAction = onCellAction.bind(null, Position.CenterCenter)
+    const cellBottomCenterAction = onCellAction.bind(null, Position.BottomCenter)
+    const cellTopRightAction = onCellAction.bind(null, Position.TopRight)
+    const cellCenterRightAction = onCellAction.bind(null, Position.CenterRight)
+    const cellBottomRightAction = onCellAction.bind(null, Position.BottomRight)
 
     onMount(async () => {
         await gameStore.findMatch(data.matchId)
@@ -81,25 +83,25 @@
     $: playerEx = players.find(({ role }) => role === Role.Ex)
     $: playerOh = players.find(({ role }) => role === Role.Oh)
 
-    $: cellA1Mark = area?.table?.[Position.A1] ?? ' '
-    $: cellB1Mark = area?.table?.[Position.B1] ?? ' '
-    $: cellC1Mark = area?.table?.[Position.C1] ?? ' '
-    $: cellA2Mark = area?.table?.[Position.A2] ?? ' '
-    $: cellB2Mark = area?.table?.[Position.B2] ?? ' '
-    $: cellC2Mark = area?.table?.[Position.C2] ?? ' '
-    $: cellA3Mark = area?.table?.[Position.A3] ?? ' '
-    $: cellB3Mark = area?.table?.[Position.B3] ?? ' '
-    $: cellC3Mark = area?.table?.[Position.C3] ?? ' '
+    $: cellTopLeftMark = area.table.get(Position.TopLeft) ?? ' '
+    $: cellCenterLeftMark = area.table.get(Position.CenterLeft) ?? ' '
+    $: cellBottomLeftMark = area.table.get(Position.BottomLeft) ?? ' '
+    $: cellTopCenterMark = area.table.get(Position.TopCenter) ?? ' '
+    $: cellCenterCenterMark = area.table.get(Position.CenterCenter) ?? ' '
+    $: cellBottomCenterMark = area.table.get(Position.BottomCenter) ?? ' '
+    $: cellTopRightMark = area.table.get(Position.TopRight) ?? ' '
+    $: cellCenterRightMark = area.table.get(Position.CenterRight) ?? ' '
+    $: cellBottomRightMark = area.table.get(Position.BottomRight) ?? ' '
 
-    $: cellA1Actionable = false
-    $: cellB1Actionable = false
-    $: cellC1Actionable = false
-    $: cellA2Actionable = false
-    $: cellB2Actionable = false
-    $: cellC2Actionable = false
-    $: cellA3Actionable = false
-    $: cellB3Actionable = false
-    $: cellC3Actionable = false
+    $: cellTopLeftActionable = false
+    $: cellCenterLeftActionable = false
+    $: cellBottomLeftActionable = false
+    $: cellTopCenterActionable = false
+    $: cellCenterCenterActionable = false
+    $: cellBottomCenterActionable = false
+    $: cellTopRightActionable = false
+    $: cellCenterRightActionable = false
+    $: cellBottomRightActionable = false
 
     $: isYourTurn = currentTurn?.id != null && currentTurn.id === userSessionId
     $: isGameEnded = result?.draw != null || result?.winner != null
@@ -114,23 +116,23 @@
             }
         } else if (result?.draw === true) {
             indicatorTitle = `Draw!`
-        } else if (result?.winner?.id != null && userSessionId != null) {
-            if (result.winner.id === userSessionId) {
+        } else if (result?.winner?.at(0)?.id != null && userSessionId != null) {
+            if (result?.winner?.at(0)?.id === userSessionId) {
                 indicatorTitle = `You Won!`
             } else {
                 indicatorTitle = `You Lose!`
             }
         }
 
-        cellA1Actionable = isCellActionable(Position.A1)
-        cellB1Actionable = isCellActionable(Position.B1)
-        cellC1Actionable = isCellActionable(Position.C1)
-        cellA2Actionable = isCellActionable(Position.A2)
-        cellB2Actionable = isCellActionable(Position.B2)
-        cellC2Actionable = isCellActionable(Position.C2)
-        cellA3Actionable = isCellActionable(Position.A3)
-        cellB3Actionable = isCellActionable(Position.B3)
-        cellC3Actionable = isCellActionable(Position.C3)
+        cellTopLeftActionable = isCellActionable(Position.TopLeft)
+        cellCenterLeftActionable = isCellActionable(Position.CenterLeft)
+        cellBottomLeftActionable = isCellActionable(Position.BottomLeft)
+        cellTopCenterActionable = isCellActionable(Position.TopCenter)
+        cellCenterCenterActionable = isCellActionable(Position.CenterCenter)
+        cellBottomCenterActionable = isCellActionable(Position.BottomCenter)
+        cellTopRightActionable = isCellActionable(Position.TopRight)
+        cellCenterRightActionable = isCellActionable(Position.CenterRight)
+        cellBottomRightActionable = isCellActionable(Position.BottomRight)
     }
 </script>
 
@@ -168,92 +170,92 @@
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellA1Actionable}
-                class:roleEx={cellA1Mark === Role.Ex}
-                class:roleOh={cellA1Mark === Role.Oh}
-                on:click={cellA1Action}
+                class:actionable={cellTopLeftActionable}
+                class:roleEx={cellTopLeftMark === Role.Ex}
+                class:roleOh={cellTopLeftMark === Role.Oh}
+                on:click={cellTopLeftAction}
             >
-                {cellA1Mark}
+                {cellTopLeftMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellB1Actionable}
-                class:roleEx={cellB1Mark === Role.Ex}
-                class:roleOh={cellB1Mark === Role.Oh}
-                on:click={cellB1Action}
+                class:actionable={cellCenterLeftActionable}
+                class:roleEx={cellCenterLeftMark === Role.Ex}
+                class:roleOh={cellCenterLeftMark === Role.Oh}
+                on:click={cellCenterLeftAction}
             >
-                {cellB1Mark}
+                {cellCenterLeftMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellC1Actionable}
-                class:roleEx={cellC1Mark === Role.Ex}
-                class:roleOh={cellC1Mark === Role.Oh}
-                on:click={cellC1Action}
+                class:actionable={cellBottomLeftActionable}
+                class:roleEx={cellBottomLeftMark === Role.Ex}
+                class:roleOh={cellBottomLeftMark === Role.Oh}
+                on:click={cellBottomLeftAction}
             >
-                {cellC1Mark}
+                {cellBottomLeftMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellA2Actionable}
-                class:roleEx={cellA2Mark === Role.Ex}
-                class:roleOh={cellA2Mark === Role.Oh}
-                on:click={cellA2Action}
+                class:actionable={cellTopCenterActionable}
+                class:roleEx={cellTopCenterMark === Role.Ex}
+                class:roleOh={cellTopCenterMark === Role.Oh}
+                on:click={cellTopCenterAction}
             >
-                {cellA2Mark}
+                {cellTopCenterMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellB2Actionable}
-                class:roleEx={cellB2Mark === Role.Ex}
-                class:roleOh={cellB2Mark === Role.Oh}
-                on:click={cellB2Action}
+                class:actionable={cellCenterCenterActionable}
+                class:roleEx={cellCenterCenterMark === Role.Ex}
+                class:roleOh={cellCenterCenterMark === Role.Oh}
+                on:click={cellCenterCenterAction}
             >
-                {cellB2Mark}
+                {cellCenterCenterMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellC2Actionable}
-                class:roleEx={cellC2Mark === Role.Ex}
-                class:roleOh={cellC2Mark === Role.Oh}
-                on:click={cellC2Action}
+                class:actionable={cellBottomCenterActionable}
+                class:roleEx={cellBottomCenterMark === Role.Ex}
+                class:roleOh={cellBottomCenterMark === Role.Oh}
+                on:click={cellBottomCenterAction}
             >
-                {cellC2Mark}
+                {cellBottomCenterMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellA3Actionable}
-                class:roleEx={cellA3Mark === Role.Ex}
-                class:roleOh={cellA3Mark === Role.Oh}
-                on:click={cellA3Action}
+                class:actionable={cellTopRightActionable}
+                class:roleEx={cellTopRightMark === Role.Ex}
+                class:roleOh={cellTopRightMark === Role.Oh}
+                on:click={cellTopRightAction}
             >
-                {cellA3Mark}
+                {cellTopRightMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellB3Actionable}
-                class:roleEx={cellB3Mark === Role.Ex}
-                class:roleOh={cellB3Mark === Role.Oh}
-                on:click={cellB3Action}
+                class:actionable={cellCenterRightActionable}
+                class:roleEx={cellCenterRightMark === Role.Ex}
+                class:roleOh={cellCenterRightMark === Role.Oh}
+                on:click={cellCenterRightAction}
             >
-                {cellB3Mark}
+                {cellCenterRightMark}
             </div>
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div
                 class="cell"
-                class:actionable={cellC3Actionable}
-                class:roleEx={cellC3Mark === Role.Ex}
-                class:roleOh={cellC3Mark === Role.Oh}
-                on:click={cellC3Action}
+                class:actionable={cellBottomRightActionable}
+                class:roleEx={cellBottomRightMark === Role.Ex}
+                class:roleOh={cellBottomRightMark === Role.Oh}
+                on:click={cellBottomRightAction}
             >
-                {cellC3Mark}
+                {cellBottomRightMark}
             </div>
         </div>
         <div class="score-board">

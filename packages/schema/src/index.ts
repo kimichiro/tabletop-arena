@@ -1,3 +1,9 @@
-export * from './room/turn-based-match/messages'
-export * from './game/turn-based/state'
-export * from './game/tictactoe/state'
+export * from './message/turn-based-match'
+
+export * from './state/identity'
+export * from './state/time'
+export * from './state/turn-based-state'
+
+export * from './schema/identity'
+export * from './schema/time'
+export * from './schema/turn-based-schema'

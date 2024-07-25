@@ -1,9 +1,9 @@
+import type { Action } from '@tabletop-arena/game-schema'
 import { writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
 import { getGameClient } from '$lib/context/game-context'
 import type { GameMatch } from '$lib/game/game-match'
-import type { GameAction } from '$lib/game/schema/tictactoe'
 
 interface StoreState<State> {
     sessionId: string | null
@@ -18,7 +18,7 @@ export interface GameStore<State> extends Readable<StoreState<State>> {
 
     findMatch(roomId?: string): Promise<void>
 
-    sendMove(action: GameAction): void
+    sendMove(action: Action): void
 
     leaveMatch(): Promise<void>
 }
@@ -34,7 +34,7 @@ export const createGameStore = <State>(name: string, initialState: State): GameS
     const client = getGameClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let match: GameMatch<any> | null = null
+    let match: GameMatch<State> | null = null
 
     return {
         subscribe,
@@ -78,7 +78,7 @@ export const createGameStore = <State>(name: string, initialState: State): GameS
             match.on('state-changed', (matchState) => {
                 update((state) => ({
                     ...state,
-                    state: matchState.toJSON()
+                    state: matchState
                 }))
             })
             match.sendMessage('match-ask', {})

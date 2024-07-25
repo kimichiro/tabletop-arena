@@ -1,22 +1,24 @@
 <script lang="ts">
     import { onMount } from 'svelte'
 
+    import { ArraySchema, MapSchema } from '@colyseus/schema'
+    import type { TicTacToeState } from '@tabletop-arena/game-schema'
+
     import { goto } from '$app/navigation'
     import BlobLoader from '$lib/component/BlobLoader.svelte'
     import CenterContainer from '$lib/component/CenterContainer.svelte'
     import { initGameContext } from '$lib/context/game-context'
-    import type { GameState } from '$lib/game/schema/tictactoe'
 
     import type { PageData } from './$types'
 
     export let data: PageData
 
-    const gameContext = initGameContext<GameState>({ authToken: data.gameToken })
+    const gameContext = initGameContext<TicTacToeState>({ authToken: data.gameToken })
     const gameStore = gameContext.createStore('tictactoe', {
-        area: { table: {}, actions: [] },
-        participants: [],
+        area: { table: new MapSchema(), actions: new ArraySchema() },
+        participants: new ArraySchema(),
         currentTurn: null,
-        moves: [],
+        moves: new ArraySchema(),
         result: null
     })
 

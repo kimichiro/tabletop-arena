@@ -2,10 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
+import { GameMoveErrorMessageType, GameMoveMessageType, MatchAskMessageType } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
-import { GameMoveErrorMessageType, GameMoveMessageType, MatchAskMessageType } from '../../../src/rooms/turn-based-match'
 import { AUTH_USER_101_ID, AUTH_USER_101_NAME, AUTH_USER_102_ID, AUTH_USER_102_NAME, toJSON } from '../../auth'
 import { ROOM_NAME } from '../game-config'
 
@@ -41,15 +41,15 @@ describe(`TicTacToe / gameplay / invalid move`, () => {
         expect(room.state.toJSON()).toMatchObject({
             area: {
                 actions: expect.arrayContaining([
-                    { position: 'a1', role: 'X' },
-                    { position: 'a2', role: 'X' },
-                    { position: 'a3', role: 'X' },
-                    { position: 'b1', role: 'X' },
-                    { position: 'b2', role: 'X' },
-                    { position: 'b3', role: 'X' },
-                    { position: 'c1', role: 'X' },
-                    { position: 'c2', role: 'X' },
-                    { position: 'c3', role: 'X' }
+                    { position: 'TL', role: 'X' },
+                    { position: 'TC', role: 'X' },
+                    { position: 'TR', role: 'X' },
+                    { position: 'CL', role: 'X' },
+                    { position: 'CC', role: 'X' },
+                    { position: 'CR', role: 'X' },
+                    { position: 'BL', role: 'X' },
+                    { position: 'BC', role: 'X' },
+                    { position: 'BR', role: 'X' }
                 ]),
                 table: {}
             },
@@ -115,9 +115,9 @@ describe(`TicTacToe / gameplay / invalid move`, () => {
         })
     })
 
-    it(`'X' player send invalid move on position 'b2' with role 'O'`, async () => {
+    it(`'X' player send invalid move on position 'CC' with role 'O'`, async () => {
         client1.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'b2' }
+            action: { role: 'O', position: 'CC' }
         })
 
         await room.waitForMessage(GameMoveMessageType)

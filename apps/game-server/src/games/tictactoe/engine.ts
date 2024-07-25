@@ -1,26 +1,35 @@
 import { ArraySchema } from '@colyseus/schema'
-import { Action, Area, GameMove, GameResult, GameState, Player, Position, Role } from '@tabletop-arena/schema'
+import {
+    ActionSchema,
+    AreaSchema,
+    MoveSchema,
+    ResultSchema,
+    TicTacToeSchema,
+    ParticipantSchema,
+    Position,
+    Role
+} from '@tabletop-arena/game-schema'
 import { injectable } from 'tsyringe'
 
 import { TurnBasedEngine } from '../../engines/turn-based-engine'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
-    [Position.A1, Position.A2, Position.A3],
-    [Position.B1, Position.B2, Position.B3],
-    [Position.C1, Position.C2, Position.C3],
+    [Position.TopLeft, Position.TopCenter, Position.TopRight],
+    [Position.CenterLeft, Position.CenterCenter, Position.CenterRight],
+    [Position.BottomLeft, Position.BottomCenter, Position.BottomRight],
 
-    [Position.A1, Position.B1, Position.C1],
-    [Position.A2, Position.B2, Position.C2],
-    [Position.A3, Position.B3, Position.C3],
+    [Position.TopLeft, Position.CenterLeft, Position.BottomLeft],
+    [Position.TopCenter, Position.CenterCenter, Position.BottomCenter],
+    [Position.TopRight, Position.CenterRight, Position.BottomRight],
 
-    [Position.A1, Position.B2, Position.C3],
-    [Position.A3, Position.B2, Position.C1]
+    [Position.TopLeft, Position.CenterCenter, Position.BottomRight],
+    [Position.TopRight, Position.CenterCenter, Position.BottomLeft]
 ]
 
 @injectable()
-export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
+export class TicTacToeEngine extends TurnBasedEngine<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema> {
     constructor() {
-        super(new GameState<Action, Area, Player>(new Area()), { roleAssignStrategy: 'fifo' })
+        super(new TicTacToeSchema(new AreaSchema()), { roleAssignStrategy: 'fifo' })
     }
 
     protected onInit(): void {
@@ -35,21 +44,21 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
         this.state.currentTurn =
             this.context.participants.find((participant) => participant.role === currentRole) ?? null
 
-        this.state.area.actions.push(new Action(currentRole, Position.A1))
-        this.state.area.actions.push(new Action(currentRole, Position.A2))
-        this.state.area.actions.push(new Action(currentRole, Position.A3))
-        this.state.area.actions.push(new Action(currentRole, Position.B1))
-        this.state.area.actions.push(new Action(currentRole, Position.B2))
-        this.state.area.actions.push(new Action(currentRole, Position.B3))
-        this.state.area.actions.push(new Action(currentRole, Position.C1))
-        this.state.area.actions.push(new Action(currentRole, Position.C2))
-        this.state.area.actions.push(new Action(currentRole, Position.C3))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.TopLeft))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.TopCenter))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.TopRight))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.CenterLeft))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.CenterCenter))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.CenterRight))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.BottomLeft))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.BottomCenter))
+        this.state.area.actions.push(new ActionSchema(currentRole, Position.BottomRight))
 
         this.context.currentTurn = this.state.currentTurn
     }
 
-    protected onNewParticipant(id: string, userId: string, name: string): Player {
-        const player = new Player(id, name, userId)
+    protected onNewParticipant(id: string, userId: string, name: string): ParticipantSchema {
+        const player = new ParticipantSchema(id, name, userId)
 
         const { roleAssignStrategy } = this.settings
         if (roleAssignStrategy === 'fifo') {
@@ -65,7 +74,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
         return player
     }
 
-    protected onUpdateParticipant(previous: Player, current: Player): void {
+    protected onUpdateParticipant(previous: ParticipantSchema, current: ParticipantSchema): void {
         current.role = previous.role
 
         this.state.participants = new ArraySchema(...this.context.participants)
@@ -76,7 +85,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
         }
     }
 
-    protected onMove(participant: Player, action: Action): void {
+    protected onMove(participant: ParticipantSchema, action: ActionSchema): void {
         const isConcluded = this.state.result != null
         const foundParticipant = this.state.participants.some(
             ({ userId, role }) => userId === participant.userId && role === action.role
@@ -91,7 +100,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
 
         this.state.area.table.set(action.position, action.role)
 
-        this.state.moves.push(new GameMove(action.position, participant))
+        this.state.moves.push(new MoveSchema(action.position, new ActionSchema(action.role, action.position)))
 
         const result = this.checkResult()
         if (result == null) {
@@ -100,7 +109,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
 
             this.state.area.actions.splice(actionIndex, 1)
             this.state.area.actions = new ArraySchema(
-                ...this.state.area.actions.map(({ position }) => new Action(otherRole, position))
+                ...this.state.area.actions.map(({ position }) => new ActionSchema(otherRole, position))
             )
         } else {
             this.state.currentTurn = null
@@ -112,7 +121,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
         this.context.currentTurn = this.state.currentTurn
     }
 
-    private checkResult(): GameResult | null {
+    private checkResult(): ResultSchema | null {
         const moves = decisivePositions.map((positions) => positions.map((pos) => this.state.area.table.get(pos)))
 
         const winningMove = moves.find((roles) => {
@@ -121,7 +130,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
         })
         if (winningMove != null) {
             const winner = this.state.participants.find(({ role }) => role === winningMove.at(0))
-            return new GameResult(false, winner ?? null)
+            return new ResultSchema(false, winner == null ? null : new ArraySchema(winner))
         }
 
         const possibleWin = moves.some((roles) => {
@@ -129,7 +138,7 @@ export class TicTacToeEngine extends TurnBasedEngine<Action, Area, Player> {
             return roles.every((role) => role === move || role == null)
         })
         if (!possibleWin) {
-            return new GameResult(true, null)
+            return new ResultSchema(true, null)
         }
 
         return null

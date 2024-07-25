@@ -1,10 +1,8 @@
-import { Schema } from '@colyseus/schema'
-
 export const MatchAskMessageType = 'match-ask'
 export interface MatchAskPayload {}
 
 export const GameMoveMessageType = 'game-move'
-export interface GameMovePayload<Action extends Schema = Schema> {
+export interface GameMovePayload<Action extends object = object> {
     action: Action
 }
 

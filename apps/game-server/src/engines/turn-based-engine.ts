@@ -1,5 +1,12 @@
 import { Client } from '@colyseus/core'
-import { GameAction, GameArea, GameMove, GameParticipant, GameResult, GameState } from '@tabletop-arena/schema'
+import {
+    TurnBasedActionSchema,
+    TurnBasedAreaSchema,
+    TurnBasedMoveSchema,
+    TurnBasedParticipantSchema,
+    TurnBasedResultSchema,
+    TurnBasedSchema
+} from '@tabletop-arena/schema'
 
 import { IdToken } from '../auth'
 import { CountdownTimer } from './game-clock'
@@ -15,7 +22,7 @@ export interface GameSettings {
     roleAssignStrategy: RoleAssignStrategy
 }
 
-export interface TurnBasedContext<Participant extends GameParticipant> {
+export interface TurnBasedContext<Participant extends TurnBasedParticipantSchema> {
     started: boolean
 
     minParticipants: number
@@ -26,17 +33,21 @@ export interface TurnBasedContext<Participant extends GameParticipant> {
 }
 
 export abstract class TurnBasedEngine<
-    Action extends GameAction = GameAction,
-    Area extends GameArea<Action> = GameArea<Action>,
-    Participant extends GameParticipant = GameParticipant,
-    Move extends GameMove = GameMove,
-    Result extends GameResult = GameResult,
+    Action extends TurnBasedActionSchema = TurnBasedActionSchema,
+    Area extends TurnBasedAreaSchema<Action> = TurnBasedAreaSchema<Action>,
+    Participant extends TurnBasedParticipantSchema = TurnBasedParticipantSchema,
+    Move extends TurnBasedMoveSchema = TurnBasedMoveSchema,
+    Result extends TurnBasedResultSchema<Participant> = TurnBasedResultSchema<Participant>,
     Settings extends GameSettings = GameSettings
-> extends GameEngine<GameState<Action, Area, Participant, Move, Result>, TurnBasedContext<Participant>, Settings> {
+> extends GameEngine<
+    TurnBasedSchema<Action, Area, Participant, Move, Result>,
+    TurnBasedContext<Participant>,
+    Settings
+> {
     #timers: Map<Participant, CountdownTimer> = new Map<Participant, CountdownTimer>()
     #currentTurn: Participant | null = null
 
-    constructor(state: GameState<Action, Area, Participant, Move, Result>, settings: Settings) {
+    constructor(state: TurnBasedSchema<Action, Area, Participant, Move, Result>, settings: Settings) {
         super(
             state,
             {
