@@ -5,7 +5,7 @@ import {
     TurnBasedMoveSchema,
     TurnBasedParticipantSchema,
     TurnBasedResultSchema,
-    TurnBasedSchema
+    TurnBasedStateSchema
 } from '@tabletop-arena/schema'
 import { Client } from 'colyseus'
 
@@ -25,7 +25,13 @@ export class ActionSchema extends TurnBasedActionSchema implements Action {
 export class AreaSchema extends TurnBasedAreaSchema<ActionSchema> implements Area<ActionSchema> {
     @type({ map: 'string' }) table: MapSchema<Role, Position> = new MapSchema<Role, Position>()
 
-    @filterChildren(function (this: AreaSchema, client: Client, _: string, value: ActionSchema, root: TicTacToeSchema) {
+    @filterChildren(function (
+        this: AreaSchema,
+        client: Client,
+        _: string,
+        value: ActionSchema,
+        root: TicTacToeStateSchema
+    ) {
         return (
             client.sessionId === root.currentTurn?.id &&
             value.role === root.currentTurn?.role &&
@@ -50,6 +56,11 @@ export class MoveSchema extends TurnBasedMoveSchema implements Move<ActionSchema
 
 export class ResultSchema extends TurnBasedResultSchema<ParticipantSchema> implements Result<ParticipantSchema> {}
 
-export class TicTacToeSchema
-    extends TurnBasedSchema<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema, ResultSchema>
-    implements TicTacToeState<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema, ResultSchema> {}
+export class TicTacToeStateSchema
+    extends TurnBasedStateSchema<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema, ResultSchema>
+    implements TicTacToeState<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema, ResultSchema>
+{
+    constructor() {
+        super(new AreaSchema(), new ArraySchema(), null, new ArraySchema(), null)
+    }
+}

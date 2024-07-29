@@ -7,9 +7,9 @@ import {
     TurnBasedParticipant,
     TurnBasedResult,
     TurnBasedState
-} from '../state/turn-based-state'
-import { ConnectionSchema, IdentitySchema } from './identity'
-import { TimeDurationSchema } from './time'
+} from './turn-based-state'
+import { ConnectionSchema, IdentitySchema } from './identity.schema'
+import { TimeDurationSchema } from './time.schema'
 
 export class TurnBasedActionSchema extends Schema implements TurnBasedAction {}
 
@@ -49,7 +49,7 @@ export class TurnBasedResultSchema<TParticipant extends TurnBasedParticipantSche
     }
 }
 
-export class TurnBasedSchema<
+export class TurnBasedStateSchema<
         TAction extends TurnBasedActionSchema,
         TArea extends TurnBasedAreaSchema<TAction>,
         TParticipant extends TurnBasedParticipantSchema = TurnBasedParticipantSchema,

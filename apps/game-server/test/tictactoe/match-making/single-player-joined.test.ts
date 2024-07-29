@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
-import { MatchAskMessageType } from '@tabletop-arena/schema'
+import { MatchAskMessageName } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
@@ -53,9 +53,9 @@ describe(`TicTacToe / match-making / single player joined`, () => {
     })
 
     it(`first player send 'match-ask'`, async () => {
-        client1.send(MatchAskMessageType, {})
+        client1.send(MatchAskMessageName)
 
-        await room.waitForMessage(MatchAskMessageType)
+        await room.waitForMessage(MatchAskMessageName)
         await room.waitForNextPatch()
 
         expect(client1.state.toJSON()).toStrictEqual({

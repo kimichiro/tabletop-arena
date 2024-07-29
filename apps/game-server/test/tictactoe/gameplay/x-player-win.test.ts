@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
-import { GameMoveMessageType, MatchAskMessageType } from '@tabletop-arena/schema'
+import { ActionMessageName, MatchAskMessageName } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
@@ -30,11 +30,11 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_101_ID, name: AUTH_USER_101_NAME })
         client1 = await colyseus.connectTo(room)
-        client1.send(MatchAskMessageType, {})
+        client1.send(MatchAskMessageName)
 
         colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_102_ID, name: AUTH_USER_102_NAME })
         client2 = await colyseus.connectTo(room)
-        client2.send(MatchAskMessageType, {})
+        client2.send(MatchAskMessageName)
 
         await room.waitForNextPatch()
 
@@ -102,11 +102,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
     })
 
     it(`'X' player moves on position 'CC'`, async () => {
-        client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'CC' }
-        })
+        client1.send(ActionMessageName, { role: 'X', position: 'CC' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
         await room.waitForNextPatch()
 
         expect(room.state.toJSON()).toMatchObject({
@@ -133,11 +131,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
     })
 
     it(`'O' player moves on position 'TC'`, async () => {
-        client2.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'TC' }
-        })
+        client2.send(ActionMessageName, { role: 'O', position: 'TC' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
         await room.waitForNextPatch()
 
         expect(room.state.toJSON()).toMatchObject({
@@ -165,11 +161,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
     })
 
     it(`'X' player moves on position 'TL'`, async () => {
-        client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'TL' }
-        })
+        client1.send(ActionMessageName, { role: 'X', position: 'TL' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
         await room.waitForNextPatch()
 
         expect(room.state.toJSON()).toMatchObject({
@@ -198,11 +192,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
     })
 
     it(`'O' player moves on position 'BR'`, async () => {
-        client2.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'BR' }
-        })
+        client2.send(ActionMessageName, { role: 'O', position: 'BR' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
         await room.waitForNextPatch()
 
         expect(room.state.toJSON()).toMatchObject({
@@ -232,11 +224,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
     })
 
     it(`'X' player moves on position 'BL'`, async () => {
-        client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'BL' }
-        })
+        client1.send(ActionMessageName, { role: 'X', position: 'BL' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
         await room.waitForNextPatch()
 
         expect(room.state.toJSON()).toMatchObject({
@@ -267,11 +257,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
     })
 
     it(`'O' player moves on position 'TR'`, async () => {
-        client2.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'TR' }
-        })
+        client2.send(ActionMessageName, { role: 'O', position: 'TR' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
         await room.waitForNextPatch()
 
         expect(room.state.toJSON()).toMatchObject({
@@ -303,11 +291,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
     })
 
     it(`'X' player moves on position 'CL'`, async () => {
-        client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'CL' }
-        })
+        client1.send(ActionMessageName, { role: 'X', position: 'CL' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
         await room.waitForNextPatch()
 
         expect(room.state.toJSON()).toMatchObject({

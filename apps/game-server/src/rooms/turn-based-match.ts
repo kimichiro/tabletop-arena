@@ -1,23 +1,21 @@
 import { Client, logger, Room } from '@colyseus/core'
+import { ActionSchema } from '@tabletop-arena/game-schema'
+import type { Action } from '@tabletop-arena/game-schema'
 import {
-    GameEndedMessageType,
-    GameEndedPayload,
-    GameMoveErrorMessageType,
-    GameMoveErrorPayload,
-    GameMoveMessageType,
-    GameMovePayload,
-    GameStartedMessageType,
-    GameStartedPayload,
-    MatchAskMessageType,
-    MatchAskPayload
+    ActionMessageName,
+    ErrorCode,
+    GameError,
+    MatchAskMessageName,
+    OnEndedMessageName,
+    OnStartMessageName
 } from '@tabletop-arena/schema'
+import type { ActionPayload, MatchAskPayload } from '@tabletop-arena/schema'
 import { IncomingMessage } from 'http'
 import { container } from 'tsyringe'
 
 import { IdToken } from '../auth'
 import { GameClock } from '../engines/game-clock'
 import { GameSettings, TurnBasedEngine } from '../engines/turn-based-engine'
-import { Action, ActionSchema } from '@tabletop-arena/game-schema'
 
 export class TurnBasedMatch extends Room {
     #engine!: TurnBasedEngine
@@ -36,8 +34,8 @@ export class TurnBasedMatch extends Room {
         this.#engine.init(this.#clock, options)
 
         // Setup event handling
-        this.onMessage(MatchAskMessageType, this.onMatchAsk.bind(this))
-        this.onMessage(GameMoveMessageType, this.onGameMove.bind(this))
+        this.onMessage(MatchAskMessageName, this.onMatchAsk.bind(this))
+        this.onMessage(ActionMessageName, this.onAction.bind(this))
 
         // Lock room when reaches total number of participants
         this.maxClients = this.#engine.context.maxParticipants
@@ -96,15 +94,14 @@ export class TurnBasedMatch extends Room {
     onBeforePatch(): void {
         if (this.#engine.state.result != null) {
             setTimeout(() => {
-                const payload: GameEndedPayload = {}
-                this.broadcast(GameEndedMessageType, payload)
+                this.broadcast(OnEndedMessageName)
             }, 0)
         }
     }
 
     private async onMatchAsk(client: Client, _: MatchAskPayload): Promise<void> {
         logger.info(
-            `[${this.roomId}][${client.sessionId}] ${MatchAskMessageType}: room capacity ${this.clients.length}/${this.maxClients}`
+            `[${this.roomId}][${client.sessionId}] ${MatchAskMessageName}: room capacity ${this.clients.length}/${this.maxClients}`
         )
 
         if (!this.#engine.context.started) {
@@ -118,32 +115,28 @@ export class TurnBasedMatch extends Room {
                     // setup game state
                     this.#engine.start()
 
-                    const payload: GameStartedPayload = {}
-                    this.broadcast(GameStartedMessageType, payload)
+                    this.broadcast(OnStartMessageName)
 
                     // set flag to avoid joining in-progress game room from lobby
                     await this.setMetadata({ started: true })
                 } catch (error) {
-                    logger.warn(`[${this.roomId}][${client.sessionId}] ${MatchAskMessageType}: ${error}`)
+                    logger.warn(`[${this.roomId}][${client.sessionId}] ${MatchAskMessageName}: ${error}`)
                 }
             }
         }
     }
 
-    private onGameMove(client: Client, payload: GameMovePayload<Action>): void {
-        logger.info(`[${this.roomId}][${client.sessionId}] ${GameMoveMessageType}:`)
-
-        const { action } = payload
+    private onAction(client: Client, payload: ActionPayload<Action>): void {
+        logger.info(`[${this.roomId}][${client.sessionId}] ${ActionMessageName}:`)
 
         try {
-            this.#engine.move(client, new ActionSchema(action.role, action.position))
+            this.#engine.move(client, new ActionSchema(payload.role, payload.position))
         } catch (error) {
-            logger.warn(`[${this.roomId}][${client.sessionId}] ${GameMoveMessageType}: ${error}`)
+            logger.warn(`[${this.roomId}][${client.sessionId}] ${ActionMessageName}: ${error}`)
 
-            const message: GameMoveErrorPayload = {
-                message: error instanceof Error ? error.message : `${error}`
-            }
-            client.send(GameMoveErrorMessageType, message)
+            const code = error instanceof GameError ? error.code : ErrorCode.Consented
+            const message = error instanceof Error ? error.message : `${error}`
+            client.error(code, message)
         }
     }
 }

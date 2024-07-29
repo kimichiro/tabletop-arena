@@ -3,11 +3,11 @@
 
     import { onMount } from 'svelte'
 
-    import { ArraySchema, MapSchema } from '@colyseus/schema'
-    import { Position, Role } from '@tabletop-arena/game-schema'
+    import { createInitialState, Position, Role } from '@tabletop-arena/game-schema'
     import type { TicTacToeState } from '@tabletop-arena/game-schema'
 
     import { beforeNavigate, goto } from '$app/navigation'
+    import { PUBLIC_TICTACTOE_ROOM_NAME } from '$env/static/public'
     import { initGameContext } from '$lib/context/game-context'
 
     import type { PageData } from './$types'
@@ -15,18 +15,11 @@
     export let data: PageData
 
     const gameContext = initGameContext<TicTacToeState>({ authToken: data.gameToken })
-    const gameStore = gameContext.getStore('tictactoe', {
-        area: { table: new MapSchema(), actions: new ArraySchema() },
-        participants: new ArraySchema(),
-        currentTurn: null,
-        moves: new ArraySchema(),
-        result: null
-    })
+    const gameStore = gameContext.getRealtimeGameStore(PUBLIC_TICTACTOE_ROOM_NAME, createInitialState())
 
     const onCellAction = (position: Position) => {
         const { state } = $gameStore
         const action = state.area.actions.find((action) => action.position === position)
-
         if (action != null) {
             gameStore.sendMove(action)
         }

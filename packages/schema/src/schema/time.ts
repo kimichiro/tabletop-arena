@@ -1,10 +1,6 @@
-import { Schema, type } from '@colyseus/schema'
+export interface TimeDuration {
+    minutes: number
+    seconds: number
 
-import { TimeDuration } from '../state/time'
-
-export class TimeDurationSchema extends Schema implements TimeDuration {
-    @type('number') minutes: number = 0
-    @type('number') seconds: number = 0
-
-    @type('number') asMilliseconds: number = 0
+    asMilliseconds: number
 }

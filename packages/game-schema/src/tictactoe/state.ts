@@ -53,3 +53,11 @@ export interface TicTacToeState<
     TMove extends Move<TAction> = Move<TAction>,
     TResult extends Result<TParticipant> = Result<TParticipant>
 > extends TurnBasedState<TAction, TArea, TParticipant, TMove, TResult> {}
+
+export const createInitialState = (): TicTacToeState => ({
+    area: { table: new MapSchema(), actions: new ArraySchema() },
+    participants: new ArraySchema(),
+    currentTurn: null,
+    moves: new ArraySchema(),
+    result: null
+})

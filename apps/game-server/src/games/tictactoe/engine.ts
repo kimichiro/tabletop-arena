@@ -4,7 +4,7 @@ import {
     AreaSchema,
     MoveSchema,
     ResultSchema,
-    TicTacToeSchema,
+    TicTacToeStateSchema,
     ParticipantSchema,
     Position,
     Role
@@ -12,6 +12,7 @@ import {
 import { injectable } from 'tsyringe'
 
 import { TurnBasedEngine } from '../../engines/turn-based-engine'
+import { AlreadyEndedError, InvalidActionError, InvalidParticipantError } from '@tabletop-arena/schema'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopLeft, Position.TopCenter, Position.TopRight],
@@ -29,7 +30,7 @@ const decisivePositions: Array<[Position, Position, Position]> = [
 @injectable()
 export class TicTacToeEngine extends TurnBasedEngine<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema> {
     constructor() {
-        super(new TicTacToeSchema(new AreaSchema()), { roleAssignStrategy: 'fifo' })
+        super(new TicTacToeStateSchema(), { roleAssignStrategy: 'fifo' })
     }
 
     protected onInit(): void {
@@ -87,15 +88,22 @@ export class TicTacToeEngine extends TurnBasedEngine<ActionSchema, AreaSchema, P
 
     protected onMove(participant: ParticipantSchema, action: ActionSchema): void {
         const isConcluded = this.state.result != null
+        if (isConcluded) {
+            throw new AlreadyEndedError()
+        }
+
         const foundParticipant = this.state.participants.some(
             ({ userId, role }) => userId === participant.userId && role === action.role
         )
+        if (!foundParticipant) {
+            throw new InvalidParticipantError()
+        }
+
         const actionIndex = this.state.area.actions.findIndex(
             ({ position, role }) => position === action.position && role === action.role
         )
-
-        if (isConcluded || !foundParticipant || actionIndex === -1) {
-            throw new Error('Invalid move')
+        if (actionIndex === -1) {
+            throw new InvalidActionError('unexpected action')
         }
 
         this.state.area.table.set(action.position, action.role)

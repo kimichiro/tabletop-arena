@@ -1,2 +1,2 @@
 export * from './tictactoe/state'
-export * from './tictactoe/schema'
+export * from './tictactoe/state.schema'

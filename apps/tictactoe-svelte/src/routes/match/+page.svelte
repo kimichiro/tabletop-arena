@@ -1,10 +1,11 @@
 <script lang="ts">
     import { onMount } from 'svelte'
 
-    import { ArraySchema, MapSchema } from '@colyseus/schema'
+    import { createInitialState } from '@tabletop-arena/game-schema'
     import type { TicTacToeState } from '@tabletop-arena/game-schema'
 
     import { goto } from '$app/navigation'
+    import { PUBLIC_TICTACTOE_ROOM_NAME } from '$env/static/public'
     import BlobLoader from '$lib/component/BlobLoader.svelte'
     import CenterContainer from '$lib/component/CenterContainer.svelte'
     import { initGameContext } from '$lib/context/game-context'
@@ -14,13 +15,7 @@
     export let data: PageData
 
     const gameContext = initGameContext<TicTacToeState>({ authToken: data.gameToken })
-    const gameStore = gameContext.createStore('tictactoe', {
-        area: { table: new MapSchema(), actions: new ArraySchema() },
-        participants: new ArraySchema(),
-        currentTurn: null,
-        moves: new ArraySchema(),
-        result: null
-    })
+    const gameStore = gameContext.getRealtimeGameStore(PUBLIC_TICTACTOE_ROOM_NAME, createInitialState())
 
     onMount(() => {
         gameStore.findMatch()

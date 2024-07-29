@@ -1,9 +1,9 @@
+import { RealtimeMatch } from '@tabletop-arena/game-client'
 import type { Action } from '@tabletop-arena/game-schema'
 import { writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
-import { getGameClient } from '$lib/context/game-context'
-import type { GameMatch } from '$lib/game/game-match'
+import { getRealtimeClient } from '$lib/context/game-context'
 
 interface StoreState<State> {
     sessionId: string | null
@@ -13,7 +13,7 @@ interface StoreState<State> {
     state: State
 }
 
-export interface GameStore<State> extends Readable<StoreState<State>> {
+export interface RealtimeGameStore<State> extends Readable<StoreState<State>> {
     readonly name: string
 
     findMatch(roomId?: string): Promise<void>
@@ -23,7 +23,7 @@ export interface GameStore<State> extends Readable<StoreState<State>> {
     leaveMatch(): Promise<void>
 }
 
-export const createGameStore = <State>(name: string, initialState: State): GameStore<State> => {
+export const createRealtimeGameStore = <State>(name: string, initialState: State): RealtimeGameStore<State> => {
     const { subscribe, update } = writable<StoreState<State>>({
         sessionId: null,
         roomId: null,
@@ -31,10 +31,9 @@ export const createGameStore = <State>(name: string, initialState: State): GameS
         state: initialState
     })
 
-    const client = getGameClient()
+    const client = getRealtimeClient()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let match: GameMatch<State> | null = null
+    let match: RealtimeMatch<State> | null = null
 
     return {
         subscribe,
@@ -63,13 +62,13 @@ export const createGameStore = <State>(name: string, initialState: State): GameS
                 match = await client.findMatch(name)
             }
 
-            match.on('game-started', () => {
+            match.on('start', () => {
                 update((state) => ({
                     ...state,
                     started: true
                 }))
             })
-            match.on('game-ended', async () => {
+            match.on('ended', async () => {
                 if (match != null) {
                     await match.leave()
                     match = null
@@ -81,7 +80,7 @@ export const createGameStore = <State>(name: string, initialState: State): GameS
                     state: matchState
                 }))
             })
-            match.sendMessage('match-ask', {})
+            match.send('match-ask')
 
             update((state) => ({
                 ...state,
@@ -90,7 +89,7 @@ export const createGameStore = <State>(name: string, initialState: State): GameS
             }))
         },
         sendMove: (action) => {
-            match?.sendMessage('game-move', { action })
+            match?.send('action', action)
         },
         leaveMatch: async () => {
             await match?.leave(true)

@@ -5,7 +5,8 @@ import {
     TurnBasedMoveSchema,
     TurnBasedParticipantSchema,
     TurnBasedResultSchema,
-    TurnBasedSchema
+    TurnBasedStateSchema,
+    MismatchClientError
 } from '@tabletop-arena/schema'
 
 import { IdToken } from '../auth'
@@ -40,14 +41,14 @@ export abstract class TurnBasedEngine<
     Result extends TurnBasedResultSchema<Participant> = TurnBasedResultSchema<Participant>,
     Settings extends GameSettings = GameSettings
 > extends GameEngine<
-    TurnBasedSchema<Action, Area, Participant, Move, Result>,
+    TurnBasedStateSchema<Action, Area, Participant, Move, Result>,
     TurnBasedContext<Participant>,
     Settings
 > {
     #timers: Map<Participant, CountdownTimer> = new Map<Participant, CountdownTimer>()
     #currentTurn: Participant | null = null
 
-    constructor(state: TurnBasedSchema<Action, Area, Participant, Move, Result>, settings: Settings) {
+    constructor(state: TurnBasedStateSchema<Action, Area, Participant, Move, Result>, settings: Settings) {
         super(
             state,
             {
@@ -86,7 +87,7 @@ export abstract class TurnBasedEngine<
     move(client: Client, action: Action): void {
         const participant = this.context.participants.find(({ id }) => id === client.sessionId)
         if (participant == null) {
-            throw new Error('Invalid client')
+            throw new MismatchClientError()
         }
 
         this.onMove(participant, action)

@@ -1,9 +1,9 @@
-export * from './message/turn-based-match'
-
-export * from './state/identity'
-export * from './state/time'
-export * from './state/turn-based-state'
+export * from './message/error'
+export * from './message/realtime-match'
 
 export * from './schema/identity'
+export * from './schema/identity.schema'
 export * from './schema/time'
-export * from './schema/turn-based-schema'
+export * from './schema/time.schema'
+export * from './schema/turn-based-state'
+export * from './schema/turn-based-state.schema'

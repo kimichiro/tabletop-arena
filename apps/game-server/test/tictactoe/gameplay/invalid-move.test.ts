@@ -1,8 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
+import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
-import { GameMoveErrorMessageType, GameMoveMessageType, MatchAskMessageType } from '@tabletop-arena/schema'
+import { ActionMessageName, ErrorCode, MatchAskMessageName } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
@@ -15,8 +15,14 @@ describe(`TicTacToe / gameplay / invalid move`, () => {
     let client1: ClientRoom
     let client2: ClientRoom
 
+    let onError1: ReturnType<typeof jest.fn>
+    let onError2: ReturnType<typeof jest.fn>
+
     beforeAll(async () => {
         colyseus = await boot(appConfig)
+
+        onError1 = jest.fn()
+        onError2 = jest.fn()
     })
     afterAll(async () => {
         await client1.leave()
@@ -25,16 +31,23 @@ describe(`TicTacToe / gameplay / invalid move`, () => {
         await colyseus.shutdown()
     })
 
+    afterEach(() => {
+        onError1.mockReset()
+        onError2.mockReset()
+    })
+
     it(`game server creates a match for ${ROOM_NAME}`, async () => {
         room = await colyseus.createRoom(ROOM_NAME, { roleAssignStrategy: 'fifo' })
 
         colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_101_ID, name: AUTH_USER_101_NAME })
         client1 = await colyseus.connectTo(room)
-        client1.send(MatchAskMessageType, {})
+        client1.send(MatchAskMessageName)
+        client1.onError(onError1)
 
         colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_102_ID, name: AUTH_USER_102_NAME })
         client2 = await colyseus.connectTo(room)
-        client2.send(MatchAskMessageType, {})
+        client2.send(MatchAskMessageName)
+        client2.onError(onError2)
 
         await room.waitForNextPatch()
 
@@ -102,30 +115,22 @@ describe(`TicTacToe / gameplay / invalid move`, () => {
     })
 
     it(`'X' player moves on invalid position 'x1'`, async () => {
-        client1.send(GameMoveMessageType, {
-            action: { role: 'X', position: 'x1' }
-        })
+        client1.send(ActionMessageName, { role: 'X', position: 'x1' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
 
-        const errorMessage = await client1.waitForMessage(GameMoveErrorMessageType)
+        await room.clock.duration(1000)
 
-        expect(errorMessage).toMatchObject({
-            message: 'Invalid move'
-        })
+        expect(onError1).toBeCalledWith(ErrorCode.InvalidAction, 'unexpected action')
     })
 
     it(`'X' player send invalid move on position 'CC' with role 'O'`, async () => {
-        client1.send(GameMoveMessageType, {
-            action: { role: 'O', position: 'CC' }
-        })
+        client1.send(ActionMessageName, { role: 'O', position: 'CC' })
 
-        await room.waitForMessage(GameMoveMessageType)
+        await room.waitForMessage(ActionMessageName)
 
-        const errorMessage = await client1.waitForMessage(GameMoveErrorMessageType)
+        await room.clock.duration(1000)
 
-        expect(errorMessage).toMatchObject({
-            message: 'Invalid move'
-        })
+        expect(onError1).toBeCalledWith(ErrorCode.InvalidParticipant, 'invalid participant')
     })
 })
