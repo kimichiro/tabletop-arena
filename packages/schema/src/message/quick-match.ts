@@ -1,6 +1,3 @@
-export const MatchAskMessageName = 'match-ask'
-export type MatchAskPayload = never
-
 export const ActionMessageName = 'action'
 export type ActionPayload<Payload extends object> = Payload
 

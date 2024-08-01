@@ -2,12 +2,11 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
-import { MatchAskMessageName } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
 import { AUTH_USER_101_ID, AUTH_USER_101_NAME, AUTH_USER_102_ID, AUTH_USER_102_NAME, toJSON } from '../../auth'
-import { ROOM_MAX_CLIENTS, ROOM_NAME } from '../game-config'
+import { ROOM_NAME } from '../game-config'
 
 describe(`TicTacToe / match-making / two players joined`, () => {
     let colyseus: ColyseusTestServer
@@ -29,7 +28,6 @@ describe(`TicTacToe / match-making / two players joined`, () => {
         room = await colyseus.createRoom(ROOM_NAME, { roleAssignStrategy: 'fifo' })
 
         expect(room.roomName).toStrictEqual(ROOM_NAME)
-        expect(room.maxClients).toStrictEqual(ROOM_MAX_CLIENTS)
     })
 
     it(`first player connects to the room`, async () => {
@@ -49,25 +47,22 @@ describe(`TicTacToe / match-making / two players joined`, () => {
             },
             currentTurn: {},
             moves: [],
-            participants: [],
-            result: {}
-        })
-    })
-
-    it(`first player send 'match-ask'`, async () => {
-        client1.send(MatchAskMessageName)
-
-        await room.waitForMessage(MatchAskMessageName)
-        await room.waitForNextPatch()
-
-        expect(client1.state.toJSON()).toStrictEqual({
-            area: {
-                actions: [],
-                table: {}
-            },
-            currentTurn: {},
-            moves: [],
-            participants: [],
+            participants: expect.arrayContaining([
+                {
+                    connection: {
+                        status: 'online'
+                    },
+                    id: expect.any(String),
+                    name: expect.any(String),
+                    remainingTime: {
+                        asMilliseconds: 30000,
+                        minutes: 0,
+                        seconds: 30
+                    },
+                    role: expect.any(String),
+                    userId: expect.any(String)
+                }
+            ]),
             result: {}
         })
     })
@@ -80,24 +75,6 @@ describe(`TicTacToe / match-making / two players joined`, () => {
     })
 
     it(`second player recieves first state`, async () => {
-        await room.waitForNextPatch()
-
-        expect(client2.state.toJSON()).toStrictEqual({
-            area: {
-                actions: [],
-                table: {}
-            },
-            currentTurn: {},
-            moves: [],
-            participants: [],
-            result: {}
-        })
-    })
-
-    it(`second player send 'match-ask'`, async () => {
-        client2.send(MatchAskMessageName)
-
-        await room.waitForMessage(MatchAskMessageName)
         await room.waitForNextPatch()
 
         expect(client2.state.toJSON()).toMatchObject({

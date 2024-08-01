@@ -38,7 +38,7 @@ export abstract class Match<State> {
         this.room.send(type, message)
     }
 
-    async leave(consented?: boolean): Promise<number> {
+    async leave(consented: boolean = true): Promise<number> {
         return await this.room.leave(consented)
     }
 

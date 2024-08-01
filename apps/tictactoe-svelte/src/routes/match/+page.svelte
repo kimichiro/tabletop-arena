@@ -15,18 +15,15 @@
     export let data: PageData
 
     const gameContext = initGameContext<TicTacToeState>({ authToken: data.gameToken })
-    const gameStore = gameContext.getRealtimeGameStore(PUBLIC_TICTACTOE_ROOM_NAME, createInitialState())
+    const gameStore = gameContext.getGameStore(PUBLIC_TICTACTOE_ROOM_NAME, createInitialState())
 
     onMount(() => {
-        gameStore.findMatch()
+        // TODO: display error page with button to home page
+        gameStore.findMatch().catch(() => goto('/'))
 
         const unsubscribe = gameStore.subscribe(async ({ roomId, started }) => {
-            if (started) {
-                if (roomId != null) {
-                    goto(`/match/${roomId}`)
-                } else {
-                    goto(`/`)
-                }
+            if (roomId != null && started) {
+                goto(`/match/${roomId}`)
             }
         })
 

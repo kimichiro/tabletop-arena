@@ -1,5 +1,4 @@
 import {
-    MatchAskMessageName,
     ActionMessageName,
     OnStartMessageName,
     OnEndedMessageName,
@@ -9,8 +8,7 @@ import type { ActionPayload, OnStateChangedPayload } from '@tabletop-arena/schem
 
 import { Match } from './match'
 
-export class RealtimeMatch<State> extends Match<State> {
-    send(type: typeof MatchAskMessageName): void
+export class QuickMatch<State> extends Match<State> {
     send<Action extends object>(type: typeof ActionMessageName, payload: ActionPayload<Action>): void
     send<T extends object>(type: string, message?: T): void
     send<T extends object>(type: string, message?: T): void {

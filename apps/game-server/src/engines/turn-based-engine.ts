@@ -6,7 +6,8 @@ import {
     TurnBasedParticipantSchema,
     TurnBasedResultSchema,
     TurnBasedStateSchema,
-    MismatchClientError
+    MismatchClientError,
+    Identity
 } from '@tabletop-arena/schema'
 
 import { IdToken } from '../auth'
@@ -14,23 +15,17 @@ import { CountdownTimer } from './game-clock'
 import { GameEngine } from './game-engine'
 
 const TURN_BASED_TIMEOUT_INITIAL = 30000
-const TURN_BASED_TIMEOUT_RESTORE_DEFAULT = 20000
-const TURN_BASED_TIMEOUT_RESTORE_MINIMUM = 10000
+const TURN_BASED_TIMEOUT_ADD_DEFAULT = 20000
+const TURN_BASED_TIMEOUT_ADD_MINIMUM = 10000
 
-export type RoleAssignStrategy = 'fifo' | 'random'
+export type OrderShuffle = 'fifo' | 'random'
 
-export interface GameSettings {
-    roleAssignStrategy: RoleAssignStrategy
-}
+export interface TurnBasedSettings {
+    order: OrderShuffle
 
-export interface TurnBasedContext<Participant extends TurnBasedParticipantSchema> {
-    started: boolean
-
-    minParticipants: number
-    maxParticipants: number
-    participants: Participant[]
-
-    currentTurn: Participant | null
+    timeoutInitial: number
+    timeoutAddDefault: number
+    timeoutAddMinimum: number
 }
 
 export abstract class TurnBasedEngine<
@@ -39,106 +34,120 @@ export abstract class TurnBasedEngine<
     Participant extends TurnBasedParticipantSchema = TurnBasedParticipantSchema,
     Move extends TurnBasedMoveSchema = TurnBasedMoveSchema,
     Result extends TurnBasedResultSchema<Participant> = TurnBasedResultSchema<Participant>,
-    Settings extends GameSettings = GameSettings
-> extends GameEngine<
-    TurnBasedStateSchema<Action, Area, Participant, Move, Result>,
-    TurnBasedContext<Participant>,
-    Settings
-> {
+    Settings extends TurnBasedSettings = TurnBasedSettings
+> extends GameEngine<TurnBasedStateSchema<Action, Area, Participant, Move, Result>, Settings> {
     #timers: Map<Participant, CountdownTimer> = new Map<Participant, CountdownTimer>()
     #currentTurn: Participant | null = null
 
-    constructor(state: TurnBasedStateSchema<Action, Area, Participant, Move, Result>, settings: Settings) {
-        super(
-            state,
-            {
-                started: false,
-                minParticipants: 1,
-                maxParticipants: Infinity,
-                participants: [],
-
-                get currentTurn() {
-                    return getCurrentTurn()
-                },
-                set currentTurn(participant) {
-                    setCurrentTurn(participant)
-                }
-            },
-            settings
-        )
-
-        const getCurrentTurn = (): Participant | null => this.#currentTurn
-        const setCurrentTurn = (participant: Participant | null) => {
-            if (this.#currentTurn != null) {
-                this.pauseCountdownTimer(this.#currentTurn)
-            }
-            this.#currentTurn = participant
-            if (this.#currentTurn != null) {
-                this.resumeCountdownTimer(this.#currentTurn)
-            }
-        }
+    constructor(state: TurnBasedStateSchema<Action, Area, Participant, Move, Result>, settings: Partial<Settings>) {
+        super(state, {
+            order: settings.order ?? 'fifo',
+            timeoutInitial: settings.timeoutInitial ?? TURN_BASED_TIMEOUT_INITIAL,
+            timeoutAddDefault: settings.timeoutAddDefault ?? TURN_BASED_TIMEOUT_ADD_DEFAULT,
+            timeoutAddMinimum: settings.timeoutAddMinimum ?? TURN_BASED_TIMEOUT_ADD_MINIMUM
+        } as Settings)
     }
 
     override start(): void {
-        this.onStart()
-        this.context.started = true
+        super.start()
+        this.validateTurn()
     }
 
-    move(client: Client, action: Action): void {
-        const participant = this.context.participants.find(({ id }) => id === client.sessionId)
-        if (participant == null) {
-            throw new MismatchClientError()
-        }
-
-        this.onMove(participant, action)
+    override get ready(): boolean {
+        return this.state.participants.length === this.maxClients
     }
 
     protected onConnect(client: Client, idToken: IdToken): void {
-        let participantIndex: number = -1
-        if (this.context.participants.length === this.context.maxParticipants) {
+        const participantIndex = this.state.participants.findIndex(({ userId }) => userId === idToken.id)
+        if (participantIndex === -1) {
             // reject different user from joining in-progress game room
-            participantIndex = this.context.participants.findIndex(({ userId }) => userId === idToken.id)
-            if (participantIndex === -1) {
+            if (this.started) {
                 client.leave()
                 return
             }
         }
 
-        const oldParticipant = participantIndex === -1 ? null : this.context.participants[participantIndex]
-        const newParticipant = this.onNewParticipant(client.sessionId, idToken.id, idToken.name)
+        const oldParticipant = participantIndex === -1 ? null : this.state.participants[participantIndex]
+        const newParticipant = this.onJoin(
+            {
+                id: client.sessionId,
+                name: idToken.name,
+                userId: idToken.id
+            },
+            oldParticipant
+        )
         if (participantIndex !== -1) {
-            this.context.participants.splice(participantIndex, 1, newParticipant)
-        } else {
-            this.context.participants.push(newParticipant)
+            this.state.participants.splice(participantIndex, 1)
         }
-
-        this.createCountdownTimer(newParticipant, oldParticipant == null)
+        this.state.participants.push(newParticipant)
 
         if (oldParticipant != null) {
             newParticipant.connection = oldParticipant.connection
             newParticipant.remainingTime = oldParticipant.remainingTime
-            this.onUpdateParticipant(oldParticipant, newParticipant)
+
+            if (this.state.currentTurn === oldParticipant) {
+                this.state.currentTurn = newParticipant
+            }
+
+            this.disposeCountdownTimer(oldParticipant)
         }
+
+        this.createCountdownTimer(newParticipant, oldParticipant == null)
+
+        newParticipant.connection.status = 'online'
+
+        this.validateTurn()
     }
 
     protected onDisconnect(client: Client): void {
-        const participant = this.context.participants.find(({ id }) => id === client.sessionId)
+        const participant = this.state.participants.find(({ id }) => id === client.sessionId)
         if (participant != null) {
-            this.disposeCountdownTimer(participant)
+            participant.connection.status = 'offline'
         }
     }
 
-    protected onReconnect(_: Client): void {}
+    protected onReconnect(client: Client): void {
+        const participant = this.state.participants.find(({ id }) => id === client.sessionId)
+        if (participant != null) {
+            participant.connection.status = 'online'
+        }
+    }
 
-    protected abstract onNewParticipant(id: string, userId: string, name: string): Participant
+    protected onAction(client: Client, payload: object): boolean {
+        const participant = this.state.participants.find(({ id }) => id === client.sessionId)
+        if (participant == null) {
+            throw new MismatchClientError()
+        }
 
-    protected abstract onUpdateParticipant(previous: Participant, current: Participant): void
+        this.onMove(participant, payload)
 
-    protected abstract onMove(participant: Participant, action: Action): void
+        this.validateTurn()
 
-    private createCountdownTimer(participant: Participant, renew: boolean): void {
+        return this.state.result != null
+    }
+
+    protected onDispose(): void {
+        Array.from(this.#timers.values()).forEach((timer) => timer.clear())
+        this.#timers.clear()
+    }
+
+    protected abstract onJoin(identity: Identity, existing: Participant | null): Participant
+
+    protected abstract onMove(participant: Participant, payload: object): void
+
+    private validateTurn(): void {
+        if (this.#currentTurn != null) {
+            this.pauseCountdownTimer(this.#currentTurn)
+        }
+        this.#currentTurn = this.state.currentTurn
+        if (this.#currentTurn != null) {
+            this.resumeCountdownTimer(this.#currentTurn)
+        }
+    }
+
+    private createCountdownTimer(participant: Participant, reset: boolean): void {
         const timer = this.clock.createCountdownTimer(
-            renew ? TURN_BASED_TIMEOUT_INITIAL : participant.remainingTime.asMilliseconds,
+            reset ? this.settings.timeoutInitial : participant.remainingTime.asMilliseconds,
             ({ minutes, seconds, asMilliseconds }) => {
                 participant.remainingTime.minutes = minutes
                 participant.remainingTime.seconds = seconds
@@ -171,9 +180,9 @@ export abstract class TurnBasedEngine<
             timer.pause()
 
             const regainTimeout =
-                timer.asMilliseconds > TURN_BASED_TIMEOUT_INITIAL
-                    ? TURN_BASED_TIMEOUT_RESTORE_MINIMUM
-                    : TURN_BASED_TIMEOUT_RESTORE_DEFAULT
+                timer.asMilliseconds > this.settings.timeoutInitial
+                    ? this.settings.timeoutAddMinimum
+                    : this.settings.timeoutAddDefault
             timer.increase(regainTimeout)
 
             participant.remainingTime.minutes = timer.minutes

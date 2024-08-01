@@ -1,7 +1,8 @@
 import { ArraySchema } from '@colyseus/schema'
 
-import { Connection, Identity } from './identity'
-import { TimeDuration } from './time'
+import { Identity } from './identity'
+import { ConnectionSchema } from './identity.schema'
+import { TimeDurationSchema } from './time.schema'
 
 export interface TurnBasedAction {}
 
@@ -10,8 +11,8 @@ export interface TurnBasedArea<TAction extends TurnBasedAction> {
 }
 
 export interface TurnBasedParticipant extends Identity {
-    connection: Connection
-    remainingTime: TimeDuration
+    connection: ConnectionSchema
+    remainingTime: TimeDurationSchema
 }
 
 export interface TurnBasedMove {

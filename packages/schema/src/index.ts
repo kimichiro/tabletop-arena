@@ -1,5 +1,5 @@
 export * from './message/error'
-export * from './message/realtime-match'
+export * from './message/quick-match'
 
 export * from './schema/identity'
 export * from './schema/identity.schema'

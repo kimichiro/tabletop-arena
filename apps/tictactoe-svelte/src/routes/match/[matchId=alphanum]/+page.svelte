@@ -6,7 +6,7 @@
     import { createInitialState, Position, Role } from '@tabletop-arena/game-schema'
     import type { TicTacToeState } from '@tabletop-arena/game-schema'
 
-    import { beforeNavigate, goto } from '$app/navigation'
+    import { goto } from '$app/navigation'
     import { PUBLIC_TICTACTOE_ROOM_NAME } from '$env/static/public'
     import { initGameContext } from '$lib/context/game-context'
 
@@ -15,13 +15,13 @@
     export let data: PageData
 
     const gameContext = initGameContext<TicTacToeState>({ authToken: data.gameToken })
-    const gameStore = gameContext.getRealtimeGameStore(PUBLIC_TICTACTOE_ROOM_NAME, createInitialState())
+    const gameStore = gameContext.getGameStore(PUBLIC_TICTACTOE_ROOM_NAME, createInitialState())
 
     const onCellAction = (position: Position) => {
         const { state } = $gameStore
         const action = state.area.actions.find((action) => action.position === position)
         if (action != null) {
-            gameStore.sendMove(action)
+            gameStore.sendAction(action)
         }
     }
 
@@ -48,17 +48,9 @@
     const cellCenterRightAction = onCellAction.bind(null, Position.CenterRight)
     const cellBottomRightAction = onCellAction.bind(null, Position.BottomRight)
 
-    onMount(async () => {
-        await gameStore.findMatch(data.matchId)
-
-        const { roomId } = $gameStore
-        if (roomId == null) {
-            goto('/')
-        }
-    })
-
-    beforeNavigate(async () => {
-        await gameStore.leaveMatch()
+    onMount(() => {
+        // TODO: display error page with button to home page
+        gameStore.findMatch(data.matchId).catch(() => goto('/'))
     })
 
     $: area = $gameStore.state.area

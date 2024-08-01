@@ -1,5 +1,6 @@
 import { ArraySchema } from '@colyseus/schema'
 import {
+    Action,
     ActionSchema,
     AreaSchema,
     MoveSchema,
@@ -12,7 +13,7 @@ import {
 import { injectable } from 'tsyringe'
 
 import { TurnBasedEngine } from '../../engines/turn-based-engine'
-import { AlreadyEndedError, InvalidActionError, InvalidParticipantError } from '@tabletop-arena/schema'
+import { AlreadyEndedError, Identity, InvalidActionError, InvalidParticipantError } from '@tabletop-arena/schema'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopLeft, Position.TopCenter, Position.TopRight],
@@ -27,66 +28,58 @@ const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopRight, Position.CenterCenter, Position.BottomLeft]
 ]
 
+const TICTACTOE_MIN_PLAYERS = 2
+const TICTACTOE_MAX_PLAYERS = 2
+const TICTACTOE_STARTING_ROLE = Role.Ex
+
 @injectable()
 export class TicTacToeEngine extends TurnBasedEngine<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema> {
     constructor() {
-        super(new TicTacToeStateSchema(), { roleAssignStrategy: 'fifo' })
+        super(new TicTacToeStateSchema(), { order: 'fifo' })
     }
 
-    protected onInit(): void {
-        this.context.minParticipants = 2
-        this.context.maxParticipants = 2
+    protected onInit(): [number, number] {
+        return [TICTACTOE_MIN_PLAYERS, TICTACTOE_MAX_PLAYERS]
     }
 
-    protected onStart(): void {
-        this.state.participants.push(...this.context.participants)
-
-        const currentRole = Role.Ex
+    protected onStart(): boolean {
         this.state.currentTurn =
-            this.context.participants.find((participant) => participant.role === currentRole) ?? null
+            this.state.participants.find((participant) => participant.role === TICTACTOE_STARTING_ROLE) ?? null
 
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.TopLeft))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.TopCenter))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.TopRight))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.CenterLeft))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.CenterCenter))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.CenterRight))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.BottomLeft))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.BottomCenter))
-        this.state.area.actions.push(new ActionSchema(currentRole, Position.BottomRight))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopLeft))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopCenter))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopRight))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterLeft))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterCenter))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterRight))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomLeft))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomCenter))
+        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomRight))
 
-        this.context.currentTurn = this.state.currentTurn
+        return true
     }
 
-    protected onNewParticipant(id: string, userId: string, name: string): ParticipantSchema {
-        const player = new ParticipantSchema(id, name, userId)
-
-        const { roleAssignStrategy } = this.settings
-        if (roleAssignStrategy === 'fifo') {
-            player.role = this.context.participants.length === 0 ? Role.Ex : Role.Oh
+    protected onJoin(identity: Identity, existing: ParticipantSchema | null): ParticipantSchema {
+        const player = new ParticipantSchema(identity)
+        if (existing != null) {
+            player.role = existing.role
         } else {
-            if (this.context.participants.length === 0) {
-                player.role = Math.round(Math.random()) === 0 ? Role.Ex : Role.Oh
+            const { order } = this.settings
+            if (order === 'fifo') {
+                player.role = this.state.participants.length === 0 ? Role.Ex : Role.Oh
             } else {
-                player.role = this.context.participants.some(({ role }) => role === Role.Ex) ? Role.Oh : Role.Ex
+                if (this.state.participants.length === 0) {
+                    player.role = Math.round(Math.random()) === 0 ? Role.Ex : Role.Oh
+                } else {
+                    player.role = this.state.participants.some(({ role }) => role === Role.Ex) ? Role.Oh : Role.Ex
+                }
             }
         }
 
         return player
     }
 
-    protected onUpdateParticipant(previous: ParticipantSchema, current: ParticipantSchema): void {
-        current.role = previous.role
-
-        this.state.participants = new ArraySchema(...this.context.participants)
-
-        if (this.state.currentTurn === previous) {
-            this.state.currentTurn = current
-            this.context.currentTurn = this.state.currentTurn
-        }
-    }
-
-    protected onMove(participant: ParticipantSchema, action: ActionSchema): void {
+    protected onMove(participant: ParticipantSchema, action: Action): void {
         const isConcluded = this.state.result != null
         if (isConcluded) {
             throw new AlreadyEndedError()
@@ -125,8 +118,6 @@ export class TicTacToeEngine extends TurnBasedEngine<ActionSchema, AreaSchema, P
 
             this.state.result = result
         }
-
-        this.context.currentTurn = this.state.currentTurn
     }
 
     private checkResult(): ResultSchema | null {

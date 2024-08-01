@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
-import { ActionMessageName, MatchAskMessageName } from '@tabletop-arena/schema'
+import { ActionMessageName } from '@tabletop-arena/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'
@@ -30,11 +30,9 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_101_ID, name: AUTH_USER_101_NAME })
         client1 = await colyseus.connectTo(room)
-        client1.send(MatchAskMessageName)
 
         colyseus.sdk.auth.token = toJSON({ id: AUTH_USER_102_ID, name: AUTH_USER_102_NAME })
         client2 = await colyseus.connectTo(room)
-        client2.send(MatchAskMessageName)
 
         await room.waitForNextPatch()
 

@@ -4,25 +4,27 @@ import { Schema } from '@colyseus/schema'
 import { IdToken } from '../auth'
 import { GameClock } from './game-clock'
 
-export abstract class GameEngine<State extends Schema, Context extends object, Settings extends object> {
+export abstract class GameEngine<State extends Schema, Settings extends object> {
     #state: State
-    #context: Context
     #settings: Settings
+    #started: boolean
+    #ended: boolean
+    #minClients: number
+    #maxClients: number
 
     protected clock!: GameClock
 
-    constructor(state: State, context: Context, settings: Settings) {
+    constructor(state: State, settings: Settings) {
         this.#state = state
-        this.#context = context
         this.#settings = settings
+        this.#started = false
+        this.#ended = false
+        this.#minClients = 1
+        this.#maxClients = Infinity
     }
 
     get state(): State {
         return this.#state
-    }
-
-    get context(): Context {
-        return this.#context
     }
 
     get settings(): Settings {
@@ -36,7 +38,9 @@ export abstract class GameEngine<State extends Schema, Context extends object, S
         }
         this.clock = clock
 
-        this.onInit()
+        const [minClients, maxClients] = this.onInit()
+        this.#minClients = minClients
+        this.#maxClients = maxClients
     }
 
     connect(client: Client, idToken: IdToken): void {
@@ -52,12 +56,41 @@ export abstract class GameEngine<State extends Schema, Context extends object, S
     }
 
     start(): void {
-        this.onStart()
+        this.#started = this.onStart()
     }
 
-    protected abstract onInit(): void
+    dispose(): void {
+        this.onDispose()
+    }
+
+    handleAction(client: Client, payload: object): void {
+        this.#ended = this.onAction(client, payload)
+    }
+
+    get started(): boolean {
+        return this.#started
+    }
+
+    get ended(): boolean {
+        return this.#ended
+    }
+
+    get minClients(): number {
+        return this.#minClients
+    }
+
+    get maxClients(): number {
+        return this.#maxClients
+    }
+
+    abstract get ready(): boolean
+
+    protected abstract onInit(): [number, number]
     protected abstract onConnect(client: Client, idToken: IdToken): void
     protected abstract onDisconnect(client: Client): void
     protected abstract onReconnect(client: Client): void
-    protected abstract onStart(): void
+
+    protected abstract onStart(): boolean
+    protected abstract onAction(client: Client, payload: object): boolean
+    protected abstract onDispose(): void
 }

@@ -7,11 +7,11 @@ export class IdentitySchema extends Schema implements Identity {
     @type('string') readonly name: string
     @type('string') readonly userId: string
 
-    constructor(id: string, name: string, userId: string) {
-        super()
-        this.id = id
-        this.name = name
-        this.userId = userId
+    constructor(payload: Identity) {
+        super(payload)
+        this.id = payload.id
+        this.name = payload.name
+        this.userId = payload.userId
     }
 }
 

@@ -12,7 +12,9 @@
             "program": "${workspaceFolder}/node_modules/.bin/tsx",
             "cwd": "${workspaceFolder}/apps/game-server",
             "args": ["watch", "src/index.ts"],
+            "envFile": "${workspaceFolder}/apps/game-server/.env.local",
             "outFiles": ["${cwd}/**/*.js"],
+            "console": "integratedTerminal",
             "sourceMaps": true
         },
         {
@@ -36,6 +38,7 @@
             "cwd": "${workspaceFolder}/apps/tictactoe-svelte",
             "args": ["dev"],
             "outFiles": ["${cwd}/**/*.js"],
+            "console": "integratedTerminal",
             "sourceMaps": true
         },
         {
