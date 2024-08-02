@@ -6,7 +6,6 @@
 </script>
 
 <CenterContainer>
-    <article class="prose lg:prose-xl">
         <h1>eX-Oh!</h1>
         <form method="post">
             <div class="flex gap-4 flex-col">
@@ -20,8 +19,9 @@
                         bind:value={data.visitorName}
                     />
                 </label>
-                <input type="submit" value="Go!" class="btn btn-block btn-active" />
+                <input type="submit" disabled={data.visitorName == null} value="Go!" class="btn btn-block btn-active" />
             </div>
         </form>
+    <article class="prose lg:prose-xl">
     </article>
 </CenterContainer>

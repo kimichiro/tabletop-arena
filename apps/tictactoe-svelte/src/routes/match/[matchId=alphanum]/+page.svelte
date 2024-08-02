@@ -34,6 +34,10 @@
         )
     }
 
+    const onToHome = () => {
+        goto('/')
+    }
+
     const onPlayAgain = () => {
         goto('/match')
     }
@@ -124,7 +128,7 @@
 <div>
     <div class="absolute top-8 left-8">
         <article class="prose lg:prose-xl">
-            <h2>eX-Oh!</h2>
+            <button on:click={onToHome}><h2>eX-Oh!</h2></button>
         </article>
     </div>
 
