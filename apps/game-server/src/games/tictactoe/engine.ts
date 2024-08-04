@@ -2,18 +2,28 @@ import { ArraySchema } from '@colyseus/schema'
 import {
     Action,
     ActionSchema,
-    AreaSchema,
-    MoveSchema,
+    Area,
     ResultSchema,
-    TicTacToeStateSchema,
-    ParticipantSchema,
+    Move,
+    MoveSchema,
+    Player,
+    PlayerSchema,
     Position,
-    Role
+    Role,
+    TicTacToeStateSchema
 } from '@tabletop-arena/game-schema'
+import {
+    AlreadyEndedError,
+    Identity,
+    IdentitySchema,
+    InvalidActionError,
+    InvalidPlayerError,
+    UnavailableSeatError
+} from '@tabletop-arena/schema'
 import { injectable } from 'tsyringe'
 
 import { TurnBasedEngine } from '../../engines/turn-based-engine'
-import { AlreadyEndedError, Identity, InvalidActionError, InvalidParticipantError } from '@tabletop-arena/schema'
+import { GameSettings } from '../../engines/game-engine'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopLeft, Position.TopCenter, Position.TopRight],
@@ -28,108 +38,125 @@ const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopRight, Position.CenterCenter, Position.BottomLeft]
 ]
 
-const TICTACTOE_MIN_PLAYERS = 2
-const TICTACTOE_MAX_PLAYERS = 2
+const TICTACTOE_EXPECTED_PLAYERS = 2
 const TICTACTOE_STARTING_ROLE = Role.Ex
 
 @injectable()
-export class TicTacToeEngine extends TurnBasedEngine<ActionSchema, AreaSchema, ParticipantSchema, MoveSchema> {
+export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<Action>> {
+    private availableSeats: Role[] = [Role.Ex, Role.Oh]
+
     constructor() {
-        super(new TicTacToeStateSchema(), { order: 'fifo' })
+        super(new TicTacToeStateSchema())
     }
 
-    protected onInit(): [number, number] {
-        return [TICTACTOE_MIN_PLAYERS, TICTACTOE_MAX_PLAYERS]
+    get ready(): boolean {
+        return this.state.players.length === TICTACTOE_EXPECTED_PLAYERS
+    }
+
+    protected onInit(settings: Partial<GameSettings>): void {
+        const { seating } = settings
+        if (seating === 'random') {
+            if (Math.round(Math.random()) === 1) {
+                this.availableSeats.reverse()
+            }
+        }
     }
 
     protected onStart(): boolean {
-        this.state.currentTurn =
-            this.state.participants.find((participant) => participant.role === TICTACTOE_STARTING_ROLE) ?? null
-
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopLeft))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopCenter))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopRight))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterLeft))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterCenter))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterRight))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomLeft))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomCenter))
-        this.state.area.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomRight))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopLeft))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopCenter))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopRight))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterLeft))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterCenter))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.CenterRight))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomLeft))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomCenter))
+        this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.BottomRight))
 
         return true
     }
 
-    protected onJoin(identity: Identity, existing: ParticipantSchema | null): ParticipantSchema {
-        const player = new ParticipantSchema(identity)
+    protected onJoin(identity: Identity, existing: PlayerSchema | null): PlayerSchema {
+        const player = new PlayerSchema(identity)
         if (existing != null) {
             player.role = existing.role
         } else {
-            const { order } = this.settings
-            if (order === 'fifo') {
-                player.role = this.state.participants.length === 0 ? Role.Ex : Role.Oh
-            } else {
-                if (this.state.participants.length === 0) {
-                    player.role = Math.round(Math.random()) === 0 ? Role.Ex : Role.Oh
-                } else {
-                    player.role = this.state.participants.some(({ role }) => role === Role.Ex) ? Role.Oh : Role.Ex
-                }
+            const role = this.availableSeats.shift()
+            if (role == null) {
+                throw new UnavailableSeatError()
             }
+            player.role = role
+            player.isCurrentTurn = role === TICTACTOE_STARTING_ROLE
         }
 
         return player
     }
 
-    protected onMove(participant: ParticipantSchema, action: Action): void {
-        const isConcluded = this.state.result != null
-        if (isConcluded) {
+    protected onMove(player: PlayerSchema, action: Action): void {
+        if (this.ended) {
             throw new AlreadyEndedError()
         }
 
-        const foundParticipant = this.state.participants.some(
-            ({ userId, role }) => userId === participant.userId && role === action.role
+        const currentPlayer = this.state.players.find(
+            ({ userId, role }) => userId === player.userId && role === action.role
         )
-        if (!foundParticipant) {
-            throw new InvalidParticipantError()
+        if (currentPlayer == null) {
+            throw new InvalidPlayerError()
         }
+        currentPlayer.isCurrentTurn = false
 
-        const actionIndex = this.state.area.actions.findIndex(
+        const actionIndex = this.state.actions.findIndex(
             ({ position, role }) => position === action.position && role === action.role
         )
         if (actionIndex === -1) {
             throw new InvalidActionError('unexpected action')
         }
 
-        this.state.area.table.set(action.position, action.role)
+        this.state.area.global.cells.set(action.position, action.role)
 
-        this.state.moves.push(new MoveSchema(action.position, new ActionSchema(action.role, action.position)))
+        this.state.summary.moves.push(new MoveSchema(action.position, new ActionSchema(action.role, action.position)))
 
         const result = this.checkResult()
         if (result == null) {
             const otherRole = action.role === Role.Ex ? Role.Oh : Role.Ex
-            this.state.currentTurn = this.state.participants.find(({ role }) => role === otherRole) ?? null
+            const currentTurn = this.state.players.find(({ role }) => role === otherRole) ?? null
+            if (currentTurn != null) {
+                currentTurn.isCurrentTurn = true
+            }
 
-            this.state.area.actions.splice(actionIndex, 1)
-            this.state.area.actions = new ArraySchema(
-                ...this.state.area.actions.map(({ position }) => new ActionSchema(otherRole, position))
+            this.state.actions.splice(actionIndex, 1)
+            this.state.actions = new ArraySchema<Action>(
+                ...this.state.actions.map(({ position }) => new ActionSchema(otherRole, position))
             )
         } else {
-            this.state.currentTurn = null
-            this.state.area.actions = new ArraySchema()
-
-            this.state.result = result
+            this.state.actions.clear()
+            this.state.summary.result = result
         }
     }
 
     private checkResult(): ResultSchema | null {
-        const moves = decisivePositions.map((positions) => positions.map((pos) => this.state.area.table.get(pos)))
+        const moves = decisivePositions.map((positions) =>
+            positions.map((pos) => this.state.area.global.cells.get(pos))
+        )
 
         const winningMove = moves.find((roles) => {
             const move = roles.find((role) => role != null)
             return move != null && roles.every((role) => role === move)
         })
         if (winningMove != null) {
-            const winner = this.state.participants.find(({ role }) => role === winningMove.at(0))
-            return new ResultSchema(false, winner == null ? null : new ArraySchema(winner))
+            const winner = this.state.players.find(({ role }) => role === winningMove.at(0))
+            return new ResultSchema(
+                false,
+                winner == null
+                    ? null
+                    : new ArraySchema<Identity>(
+                          new IdentitySchema({
+                              id: winner.id,
+                              name: winner.name,
+                              userId: winner.userId
+                          })
+                      )
+            )
         }
 
         const possibleWin = moves.some((roles) => {

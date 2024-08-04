@@ -1,62 +1,55 @@
 import { Client } from '@colyseus/core'
 import { Schema } from '@colyseus/schema'
+import { InvalidActionError } from '@tabletop-arena/schema'
 
 import { IdToken } from '../auth'
 import { GameClock } from './game-clock'
 
-export abstract class GameEngine<State extends Schema, Settings extends object> {
+export interface GameSettings {
+    seating?: 'fifo' | 'random'
+}
+
+export abstract class GameEngine<State extends Schema, Settings extends GameSettings> {
     #state: State
-    #settings: Settings
     #started: boolean
     #ended: boolean
-    #minClients: number
-    #maxClients: number
 
     protected clock!: GameClock
 
-    constructor(state: State, settings: Settings) {
+    constructor(state: State) {
         this.#state = state
-        this.#settings = settings
         this.#started = false
         this.#ended = false
-        this.#minClients = 1
-        this.#maxClients = Infinity
     }
 
     get state(): State {
         return this.#state
     }
 
-    get settings(): Settings {
-        return this.#settings
-    }
-
-    init(clock: GameClock, settings?: Settings): void {
-        this.#settings = {
-            ...this.#settings,
-            ...settings
-        }
+    init(clock: GameClock, settings?: Partial<Settings>): void {
         this.clock = clock
 
-        const [minClients, maxClients] = this.onInit()
-        this.#minClients = minClients
-        this.#maxClients = maxClients
+        this.onInit(settings ?? {})
     }
 
     connect(client: Client, idToken: IdToken): void {
         this.onConnect(client, idToken)
+        this.validate()
     }
 
     disconnect(client: Client): void {
         this.onDisconnect(client)
+        this.validate()
     }
 
     reconnect(client: Client): void {
         this.onReconnect(client)
+        this.validate()
     }
 
     start(): void {
         this.#started = this.onStart()
+        this.validate()
     }
 
     dispose(): void {
@@ -64,7 +57,12 @@ export abstract class GameEngine<State extends Schema, Settings extends object> 
     }
 
     handleAction(client: Client, payload: object): void {
+        if (this.#ended) {
+            throw new InvalidActionError('game is already ended')
+        }
+
         this.#ended = this.onAction(client, payload)
+        this.validate()
     }
 
     get started(): boolean {
@@ -75,17 +73,10 @@ export abstract class GameEngine<State extends Schema, Settings extends object> 
         return this.#ended
     }
 
-    get minClients(): number {
-        return this.#minClients
-    }
-
-    get maxClients(): number {
-        return this.#maxClients
-    }
-
     abstract get ready(): boolean
+    abstract validate(): void
 
-    protected abstract onInit(): [number, number]
+    protected abstract onInit(settings: Partial<Settings>): void
     protected abstract onConnect(client: Client, idToken: IdToken): void
     protected abstract onDisconnect(client: Client): void
     protected abstract onReconnect(client: Client): void

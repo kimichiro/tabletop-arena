@@ -3,8 +3,8 @@ import {
     TurnBasedAction,
     TurnBasedArea,
     TurnBasedMove,
-    TurnBasedParticipant,
-    TurnBasedResult,
+    TurnBasedPlayableObject,
+    TurnBasedPlayer,
     TurnBasedState
 } from '@tabletop-arena/schema'
 
@@ -25,18 +25,18 @@ export enum Position {
     BottomRight = 'BR'
 }
 
+export interface Table extends TurnBasedPlayableObject {
+    cells: MapSchema<Role, Position>
+}
+
+export interface Area extends TurnBasedArea<Table> {}
+
 export interface Action extends TurnBasedAction {
     readonly role: Role
     readonly position: Position
 }
 
-export interface Area<TAction extends Action> extends TurnBasedArea<TAction> {
-    table: MapSchema<Role, Position>
-
-    actions: ArraySchema<TAction>
-}
-
-export interface Participant extends TurnBasedParticipant {
+export interface Player extends TurnBasedPlayer {
     role: Role
 }
 
@@ -44,20 +44,16 @@ export interface Move<TAction extends Action> extends TurnBasedMove {
     readonly action: TAction
 }
 
-export type Result<TParticipant extends Participant> = TurnBasedResult<TParticipant>
-
-export interface TicTacToeState<
-    TAction extends Action = Action,
-    TArea extends Area<TAction> = Area<TAction>,
-    TParticipant extends Participant = Participant,
-    TMove extends Move<TAction> = Move<TAction>,
-    TResult extends Result<TParticipant> = Result<TParticipant>
-> extends TurnBasedState<TAction, TArea, TParticipant, TMove, TResult> {}
+export interface TicTacToeState extends TurnBasedState<Area, Action, Player, Move<Action>> {}
 
 export const createInitialState = (): TicTacToeState => ({
-    area: { table: new MapSchema(), actions: new ArraySchema() },
-    participants: new ArraySchema(),
-    currentTurn: null,
-    moves: new ArraySchema(),
-    result: null
+    area: {
+        global: { cells: new MapSchema() },
+        players: new MapSchema(),
+        self: null
+    },
+    actions: new ArraySchema(),
+    players: new ArraySchema(),
+    spectators: new ArraySchema(),
+    summary: { moves: new ArraySchema(), result: null }
 })

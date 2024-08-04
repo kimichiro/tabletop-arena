@@ -1,5 +1,6 @@
 import { QuickMatch } from '@tabletop-arena/game-client'
 import type { Action } from '@tabletop-arena/game-schema'
+import { ErrorCode } from '@tabletop-arena/schema'
 import { writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
@@ -49,8 +50,6 @@ export const createQuickGameStore = <State>(name: string, initialState: State): 
                 return
             }
 
-            update((state) => ({ ...state, state: initialState }))
-
             if (id != null) {
                 match = await client.joinMatch(id)
             } else {
@@ -61,26 +60,24 @@ export const createQuickGameStore = <State>(name: string, initialState: State): 
                 update((state) => ({ ...state, started: true }))
             })
             match.on('ended', async () => {
-                await match?.leave()
-                match = null
-
-                update((state) => ({
-                    ...state,
-                    sessionId: null,
-                    roomId: null,
-                    started: false
-                }))
+                update((state) => ({ ...state, started: false }))
             })
             match.on('state-changed', (matchState) => {
                 update((state) => ({ ...state, state: matchState }))
             })
             match.on('error', (code, message) => {
-                /* TODO: pass error through another store */
-                console.log('error:', code, message)
+                if (code !== ErrorCode.Consented) {
+                    /* TODO: pass error through another store */
+                    console.log('error:', code, message)
+                }
             })
             match.on('leave', (code) => {
-                /* TODO: pass error through another store */
-                console.log('leave:', code)
+                match = null
+
+                if (code !== ErrorCode.Consented) {
+                    /* TODO: pass error through another store */
+                    console.log('leave:', code)
+                }
             })
 
             const sessionId = match.sessionId
@@ -89,6 +86,14 @@ export const createQuickGameStore = <State>(name: string, initialState: State): 
         },
         leaveMatch: async () => {
             await match?.leave()
+            match = null
+
+            update((state) => ({
+                ...state,
+                sessionId: null,
+                roomId: null,
+                state: initialState
+            }))
         },
         sendAction: (action) => {
             if (match == null) {

@@ -1,10 +1,11 @@
 export enum ErrorCode {
     Consented = 4000,
 
-    MismatchClient = 5000,
+    UnknownClient = 5000,
+    UnavailableSeat = 5001,
 
     InvalidAction = 9000,
-    InvalidParticipant = 9001,
+    InvalidPlayer = 9001,
     AlreadyEnded = 9002
 }
 
@@ -17,10 +18,17 @@ export class GameError extends Error {
     }
 }
 
-export class MismatchClientError extends GameError {
+export class UnknownClientError extends GameError {
     constructor() {
-        super(ErrorCode.MismatchClient, `mismatch client`)
-        this.name = MismatchClientError.name
+        super(ErrorCode.UnknownClient, `unknown client`)
+        this.name = UnknownClientError.name
+    }
+}
+
+export class UnavailableSeatError extends GameError {
+    constructor() {
+        super(ErrorCode.UnavailableSeat, `unavailable seat`)
+        this.name = UnavailableSeatError.name
     }
 }
 
@@ -31,10 +39,10 @@ export class InvalidActionError extends GameError {
     }
 }
 
-export class InvalidParticipantError extends GameError {
+export class InvalidPlayerError extends GameError {
     constructor() {
-        super(ErrorCode.InvalidParticipant, `invalid participant`)
-        this.name = InvalidParticipantError.name
+        super(ErrorCode.InvalidPlayer, `invalid player`)
+        this.name = InvalidPlayerError.name
     }
 }
 

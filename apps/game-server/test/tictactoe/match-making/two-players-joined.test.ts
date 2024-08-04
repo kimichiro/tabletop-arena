@@ -25,7 +25,7 @@ describe(`TicTacToe / match-making / two players joined`, () => {
     })
 
     it(`game server creates room for ${ROOM_NAME}`, async () => {
-        room = await colyseus.createRoom(ROOM_NAME, { roleAssignStrategy: 'fifo' })
+        room = await colyseus.createRoom(ROOM_NAME, { seating: 'fifo' })
 
         expect(room.roomName).toStrictEqual(ROOM_NAME)
     })
@@ -42,17 +42,19 @@ describe(`TicTacToe / match-making / two players joined`, () => {
 
         expect(client1.state.toJSON()).toStrictEqual({
             area: {
-                actions: [],
-                table: {}
+                global: {
+                    cells: {}
+                },
+                players: {}
             },
-            currentTurn: {},
-            moves: [],
-            participants: expect.arrayContaining([
+            actions: [],
+            players: expect.arrayContaining([
                 {
                     connection: {
                         status: 'online'
                     },
                     id: expect.any(String),
+                    isCurrentTurn: true,
                     name: expect.any(String),
                     remainingTime: {
                         asMilliseconds: 30000,
@@ -63,7 +65,10 @@ describe(`TicTacToe / match-making / two players joined`, () => {
                     userId: expect.any(String)
                 }
             ]),
-            result: {}
+            spectators: [],
+            summary: {
+                moves: []
+            }
         })
     })
 
@@ -79,30 +84,19 @@ describe(`TicTacToe / match-making / two players joined`, () => {
 
         expect(client2.state.toJSON()).toMatchObject({
             area: {
-                actions: [],
-                table: {}
-            },
-            currentTurn: {
-                connection: {
-                    status: 'online'
+                global: {
+                    cells: {}
                 },
-                id: expect.any(String),
-                name: expect.any(String),
-                remainingTime: {
-                    asMilliseconds: 30000,
-                    minutes: 0,
-                    seconds: 30
-                },
-                role: 'X',
-                userId: expect.any(String)
+                players: {}
             },
-            moves: [],
-            participants: expect.arrayContaining([
+            actions: [],
+            players: expect.arrayContaining([
                 {
                     connection: {
                         status: 'online'
                     },
                     id: expect.any(String),
+                    isCurrentTurn: true,
                     name: expect.any(String),
                     remainingTime: {
                         asMilliseconds: 30000,
@@ -117,6 +111,7 @@ describe(`TicTacToe / match-making / two players joined`, () => {
                         status: 'online'
                     },
                     id: expect.any(String),
+                    isCurrentTurn: false,
                     name: expect.any(String),
                     remainingTime: {
                         asMilliseconds: 30000,
@@ -127,7 +122,10 @@ describe(`TicTacToe / match-making / two players joined`, () => {
                     userId: expect.any(String)
                 }
             ]),
-            result: {}
+            spectators: [],
+            summary: {
+                moves: []
+            }
         })
     })
 
@@ -136,40 +134,29 @@ describe(`TicTacToe / match-making / two players joined`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                actions: expect.arrayContaining([
-                    { position: 'TL', role: 'X' },
-                    { position: 'TC', role: 'X' },
-                    { position: 'TR', role: 'X' },
-                    { position: 'CL', role: 'X' },
-                    { position: 'CC', role: 'X' },
-                    { position: 'CR', role: 'X' },
-                    { position: 'BL', role: 'X' },
-                    { position: 'BC', role: 'X' },
-                    { position: 'BR', role: 'X' }
-                ]),
-                table: {}
-            },
-            currentTurn: {
-                connection: {
-                    status: 'online'
+                global: {
+                    cells: {}
                 },
-                id: expect.any(String),
-                name: expect.any(String),
-                remainingTime: {
-                    asMilliseconds: 30000,
-                    minutes: 0,
-                    seconds: 30
-                },
-                role: 'X',
-                userId: expect.any(String)
+                players: {}
             },
-            moves: [],
-            participants: expect.arrayContaining([
+            actions: expect.arrayContaining([
+                { position: 'TL', role: 'X' },
+                { position: 'TC', role: 'X' },
+                { position: 'TR', role: 'X' },
+                { position: 'CL', role: 'X' },
+                { position: 'CC', role: 'X' },
+                { position: 'CR', role: 'X' },
+                { position: 'BL', role: 'X' },
+                { position: 'BC', role: 'X' },
+                { position: 'BR', role: 'X' }
+            ]),
+            players: expect.arrayContaining([
                 {
                     connection: {
                         status: 'online'
                     },
                     id: expect.any(String),
+                    isCurrentTurn: true,
                     name: expect.any(String),
                     remainingTime: {
                         asMilliseconds: 30000,
@@ -184,6 +171,7 @@ describe(`TicTacToe / match-making / two players joined`, () => {
                         status: 'online'
                     },
                     id: expect.any(String),
+                    isCurrentTurn: false,
                     name: expect.any(String),
                     remainingTime: {
                         asMilliseconds: 30000,

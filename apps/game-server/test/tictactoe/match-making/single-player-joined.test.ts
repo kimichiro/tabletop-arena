@@ -23,7 +23,7 @@ describe(`TicTacToe / match-making / single player joined`, () => {
     })
 
     it(`game server creates room for ${ROOM_NAME}`, async () => {
-        room = await colyseus.createRoom(ROOM_NAME, { roleAssignStrategy: 'fifo' })
+        room = await colyseus.createRoom(ROOM_NAME, { seating: 'fifo' })
 
         expect(room.roomName).toStrictEqual(ROOM_NAME)
     })
@@ -40,17 +40,19 @@ describe(`TicTacToe / match-making / single player joined`, () => {
 
         expect(client1.state.toJSON()).toStrictEqual({
             area: {
-                actions: [],
-                table: {}
+                global: {
+                    cells: {}
+                },
+                players: {}
             },
-            currentTurn: {},
-            moves: [],
-            participants: expect.arrayContaining([
+            actions: [],
+            players: expect.arrayContaining([
                 {
                     connection: {
                         status: 'online'
                     },
                     id: expect.any(String),
+                    isCurrentTurn: true,
                     name: expect.any(String),
                     remainingTime: {
                         asMilliseconds: 30000,
@@ -61,7 +63,10 @@ describe(`TicTacToe / match-making / single player joined`, () => {
                     userId: expect.any(String)
                 }
             ]),
-            result: {}
+            spectators: [],
+            summary: {
+                moves: []
+            }
         })
     })
 })

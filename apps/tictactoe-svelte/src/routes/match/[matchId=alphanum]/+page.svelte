@@ -19,7 +19,7 @@
 
     const onCellAction = (position: Position) => {
         const { state } = $gameStore
-        const action = state.area.actions.find((action) => action.position === position)
+        const action = state.actions.find((action) => action.position === position)
         if (action != null) {
             gameStore.sendAction(action)
         }
@@ -29,8 +29,8 @@
         const { roomId, state } = $gameStore
         return (
             roomId != null &&
-            state.area.table.get(position) == null &&
-            state.area.actions.some((action) => action.position === position)
+            state.area.global.cells.get(position) == null &&
+            state.actions.some((action) => action.position === position)
         )
     }
 
@@ -38,7 +38,9 @@
         goto('/')
     }
 
-    const onPlayAgain = () => {
+    const onPlayAgain = async () => {
+        await gameStore.leaveMatch()
+
         goto('/match')
     }
 
@@ -54,13 +56,16 @@
 
     onMount(() => {
         // TODO: display error page with button to home page
-        gameStore.findMatch(data.matchId).catch(() => goto('/'))
+        gameStore.findMatch(data.matchId).catch((error) => {
+            console.error(error)
+            goto('/')
+        })
     })
 
     $: area = $gameStore.state.area
-    $: players = $gameStore.state.participants
-    $: currentTurn = $gameStore.state.currentTurn
-    $: result = $gameStore.state.result
+    $: players = $gameStore.state.players
+    $: currentTurn = players.find(({ isCurrentTurn }) => isCurrentTurn) ?? null
+    $: result = $gameStore.state.summary.result
 
     $: userSessionId = $gameStore.sessionId
     $: currentPlayer = players.find(({ id }) => id === userSessionId)
@@ -72,15 +77,15 @@
     $: playerEx = players.find(({ role }) => role === Role.Ex)
     $: playerOh = players.find(({ role }) => role === Role.Oh)
 
-    $: cellTopLeftMark = area.table.get(Position.TopLeft) ?? ' '
-    $: cellCenterLeftMark = area.table.get(Position.CenterLeft) ?? ' '
-    $: cellBottomLeftMark = area.table.get(Position.BottomLeft) ?? ' '
-    $: cellTopCenterMark = area.table.get(Position.TopCenter) ?? ' '
-    $: cellCenterCenterMark = area.table.get(Position.CenterCenter) ?? ' '
-    $: cellBottomCenterMark = area.table.get(Position.BottomCenter) ?? ' '
-    $: cellTopRightMark = area.table.get(Position.TopRight) ?? ' '
-    $: cellCenterRightMark = area.table.get(Position.CenterRight) ?? ' '
-    $: cellBottomRightMark = area.table.get(Position.BottomRight) ?? ' '
+    $: cellTopLeftMark = area.global.cells.get(Position.TopLeft) ?? ' '
+    $: cellCenterLeftMark = area.global.cells.get(Position.CenterLeft) ?? ' '
+    $: cellBottomLeftMark = area.global.cells.get(Position.BottomLeft) ?? ' '
+    $: cellTopCenterMark = area.global.cells.get(Position.TopCenter) ?? ' '
+    $: cellCenterCenterMark = area.global.cells.get(Position.CenterCenter) ?? ' '
+    $: cellBottomCenterMark = area.global.cells.get(Position.BottomCenter) ?? ' '
+    $: cellTopRightMark = area.global.cells.get(Position.TopRight) ?? ' '
+    $: cellCenterRightMark = area.global.cells.get(Position.CenterRight) ?? ' '
+    $: cellBottomRightMark = area.global.cells.get(Position.BottomRight) ?? ' '
 
     $: cellTopLeftActionable = false
     $: cellCenterLeftActionable = false

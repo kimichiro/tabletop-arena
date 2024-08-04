@@ -1,29 +1,43 @@
-import { ArraySchema, Schema, type } from '@colyseus/schema'
+import { ArraySchema, MapSchema, Schema, type } from '@colyseus/schema'
 
+import { Connection, Identity } from './identity'
+import { ConnectionSchema, IdentitySchema } from './identity.schema'
+import { TimeDuration } from './time'
+import { TimeDurationSchema } from './time.schema'
 import {
     TurnBasedAction,
     TurnBasedArea,
     TurnBasedMove,
-    TurnBasedParticipant,
+    TurnBasedPlayableObject,
+    TurnBasedPlayer,
     TurnBasedResult,
-    TurnBasedState
+    TurnBasedState,
+    TurnBasedSummary
 } from './turn-based-state'
-import { ConnectionSchema, IdentitySchema } from './identity.schema'
-import { TimeDurationSchema } from './time.schema'
+
+export class TurnBasedPlayableObjectSchema extends Schema implements TurnBasedPlayableObject {}
+
+export class TurnBasedAreaSchema<TGlobal extends TurnBasedPlayableObject, TPlayer extends TurnBasedPlayableObject>
+    extends Schema
+    implements TurnBasedArea<TGlobal, TPlayer>
+{
+    @type(TurnBasedPlayableObjectSchema) global: TGlobal
+    @type({ map: TurnBasedPlayableObjectSchema }) players: MapSchema<TPlayer, string> = new MapSchema<TPlayer, string>()
+    @type(TurnBasedPlayableObjectSchema) self: TPlayer | null = null
+
+    constructor(global: TGlobal) {
+        super()
+        this.global = global
+    }
+}
 
 export class TurnBasedActionSchema extends Schema implements TurnBasedAction {}
 
-export class TurnBasedAreaSchema<TAction extends TurnBasedActionSchema>
-    extends Schema
-    implements TurnBasedArea<TAction>
-{
-    @type({ array: TurnBasedActionSchema })
-    actions: ArraySchema<TAction> = new ArraySchema<TAction>()
-}
+export class TurnBasedPlayerSchema extends IdentitySchema implements TurnBasedPlayer {
+    @type(ConnectionSchema) connection: Connection = new ConnectionSchema()
+    @type(TimeDurationSchema) remainingTime: TimeDuration = new TimeDurationSchema()
 
-export class TurnBasedParticipantSchema extends IdentitySchema implements TurnBasedParticipant {
-    @type(ConnectionSchema) connection: ConnectionSchema = new ConnectionSchema()
-    @type(TimeDurationSchema) remainingTime: TimeDurationSchema = new TimeDurationSchema()
+    @type('boolean') isCurrentTurn: boolean = false
 }
 
 export class TurnBasedMoveSchema extends Schema implements TurnBasedMove {
@@ -35,49 +49,47 @@ export class TurnBasedMoveSchema extends Schema implements TurnBasedMove {
     }
 }
 
-export class TurnBasedResultSchema<TParticipant extends TurnBasedParticipantSchema>
-    extends Schema
-    implements TurnBasedResult<TParticipant>
-{
+export class TurnBasedResultSchema extends Schema implements TurnBasedResult {
     @type('boolean') readonly draw: boolean
-    @type({ array: TurnBasedParticipantSchema }) readonly winner: ArraySchema<TParticipant> | null
+    @type({ array: IdentitySchema }) readonly winner: ArraySchema<Identity> | null
 
-    constructor(draw: boolean, winner: ArraySchema<TParticipant> | null) {
+    constructor(draw: boolean, winner: ArraySchema<Identity> | null) {
         super()
         this.draw = draw
         this.winner = winner
     }
 }
 
+export class TurnBasedSummarySchema<TMove extends TurnBasedMove, TResult extends TurnBasedResult>
+    extends Schema
+    implements TurnBasedSummary<TMove, TResult>
+{
+    @type({ array: TurnBasedMoveSchema }) moves: ArraySchema<TMove> = new ArraySchema<TMove>()
+    @type(TurnBasedResultSchema) result: TResult | null = null
+}
+
 export class TurnBasedStateSchema<
-        TAction extends TurnBasedActionSchema,
-        TArea extends TurnBasedAreaSchema<TAction>,
-        TParticipant extends TurnBasedParticipantSchema = TurnBasedParticipantSchema,
-        TMove extends TurnBasedMoveSchema = TurnBasedMoveSchema,
-        TResult extends TurnBasedResultSchema<TParticipant> = TurnBasedResultSchema<TParticipant>
+        TArea extends TurnBasedArea,
+        TAction extends TurnBasedAction,
+        TPlayer extends TurnBasedPlayer,
+        TMove extends TurnBasedMove = TurnBasedMove,
+        TResult extends TurnBasedResult = TurnBasedResult,
+        TSummary extends TurnBasedSummary<TMove, TResult> = TurnBasedSummary<TMove, TResult>
     >
     extends Schema
-    implements TurnBasedState<TAction, TArea, TParticipant, TMove, TResult>
+    implements TurnBasedState<TArea, TAction, TPlayer, TMove, TResult, TSummary>
 {
     @type(TurnBasedAreaSchema) area: TArea
-    @type({ array: TurnBasedParticipantSchema }) participants: ArraySchema<TParticipant>
-    @type(TurnBasedParticipantSchema) currentTurn: TParticipant | null
+    @type({ array: TurnBasedActionSchema }) actions: ArraySchema<TAction> = new ArraySchema<TAction>()
 
-    @type({ array: TurnBasedMoveSchema }) moves: ArraySchema<TMove>
-    @type(TurnBasedResultSchema) result: TResult | null
+    @type({ array: TurnBasedPlayerSchema }) players: ArraySchema<TPlayer> = new ArraySchema<TPlayer>()
+    @type({ array: IdentitySchema }) spectators: ArraySchema<Identity> = new ArraySchema<Identity>()
 
-    constructor(
-        area: TArea,
-        participants: ArraySchema<TParticipant> = new ArraySchema<TParticipant>(),
-        currentTurn: TParticipant | null = null,
-        moves: ArraySchema<TMove> = new ArraySchema<TMove>(),
-        result: TResult | null = null
-    ) {
+    @type(TurnBasedSummarySchema) summary: TSummary
+
+    constructor(area: TArea, summary: TSummary) {
         super()
         this.area = area
-        this.participants = participants
-        this.currentTurn = currentTurn
-        this.moves = moves
-        this.result = result
+        this.summary = summary
     }
 }

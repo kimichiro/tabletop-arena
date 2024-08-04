@@ -21,12 +21,11 @@ interface Connection {
     reconnection: Deferred<Client> | null
 }
 
-const QUICK_MATCH_RECONNECTION_TIMEOUT = 60000
+const QUICK_MATCH_RECONNECTION_TIMEOUT = 60 * 1000
+const QUICK_MATCH_DISPOSE_TIMEOUT = 10 * 60 * 1000
 
 export class QuickMatch extends Room {
     #engine!: GameEngine<Schema, object>
-
-    #clock: GameClock = new GameClock(this.clock)
     #connection: Connection[] = []
 
     static async onAuth(token: string, _: IncomingMessage): Promise<IdToken> {
@@ -35,19 +34,19 @@ export class QuickMatch extends Room {
     }
 
     onCreate(options?: object): void {
+        logger.info(`[${this.roomId}] create: ${this.roomName}`)
+
         this.#engine = container.resolve(this.roomName)
         this.setState(this.#engine.state)
 
-        this.#engine.init(this.#clock, options ?? {})
+        this.#engine.init(new GameClock(this.clock), options ?? {})
 
         // setup event handling
         this.onMessage(ActionMessageName, this.onAction.bind(this))
     }
 
-    async onJoin(client: Client, _?: unknown, idToken?: IdToken): Promise<void> {
-        logger.info(
-            `[${this.roomId}][${client.sessionId}] join: room capacity ${this.clients.length}/${this.#engine.maxClients}`
-        )
+    async onJoin(client: Client, _?: object, idToken?: IdToken): Promise<void> {
+        logger.info(`[${this.roomId}][${client.sessionId}] join: ${this.roomName}(${this.clients.length})`)
 
         if (idToken == null) {
             client.leave()
@@ -62,15 +61,13 @@ export class QuickMatch extends Room {
             this.#connection.splice(connectionIndex, 1, { client, idToken, reconnection: null })
         }
 
-        if (this.clients.length === this.#engine.maxClients) {
-            await this.lock()
-        }
-
         this.#engine.connect(client, idToken)
 
         if (this.#engine.started) {
             client.send(OnStartMessageName)
         } else if (this.#engine.ready) {
+            await this.lock()
+
             // setup game state
             this.#engine.start()
 
@@ -78,19 +75,19 @@ export class QuickMatch extends Room {
                 this.broadcast(OnStartMessageName)
             }
         }
-
-        await this.setMetadata({ started: this.#engine.started })
     }
 
     async onLeave(client: Client, consented: boolean): Promise<void> {
         logger.info(
-            `[${this.roomId}][${client.sessionId}] leave(${consented}): room capacity ${this.clients.length}/${this.#engine.maxClients}`
+            `[${this.roomId}][${client.sessionId}] leave(${consented}): ${this.roomName}(${this.clients.length})`
         )
 
         this.#engine.disconnect(client)
 
-        // unlock room to allow connection from a fresh reload
-        await this.unlock()
+        if (!this.#engine.ended) {
+            // unlock room to allow connection from a fresh reload
+            await this.unlock()
+        }
 
         const connectionIndex = this.#connection.findIndex(
             (connection) => client.sessionId === connection.client.sessionId
@@ -131,21 +128,24 @@ export class QuickMatch extends Room {
         }
     }
 
-    onBeforePatch(): void {
-        if (this.#engine.ended) {
-            setTimeout(() => {
-                this.broadcast(OnEndedMessageName)
-            }, 0)
-        }
-    }
-
     onDispose(): void {
         this.#engine.dispose()
     }
 
-    private onAction(client: Client, payload: ActionPayload<object>): void {
+    private async onAction(client: Client, payload: ActionPayload<object>): Promise<void> {
         try {
             this.#engine.handleAction(client, payload)
+
+            if (this.#engine.ended) {
+                await this.lock()
+
+                this.broadcast(OnEndedMessageName)
+
+                const delayed = this.clock.setTimeout(() => {
+                    this.#connection.forEach((connection) => connection.client.leave(ErrorCode.Consented))
+                    delayed.clear()
+                }, QUICK_MATCH_DISPOSE_TIMEOUT)
+            }
         } catch (error) {
             logger.warn(`[${this.roomId}][${client.sessionId}] action: ${error}`)
 

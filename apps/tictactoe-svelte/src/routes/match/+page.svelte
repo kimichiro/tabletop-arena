@@ -19,7 +19,10 @@
 
     onMount(() => {
         // TODO: display error page with button to home page
-        gameStore.findMatch().catch(() => goto('/'))
+        gameStore.findMatch().catch((error) => {
+            console.error(error)
+            goto('/')
+        })
 
         const unsubscribe = gameStore.subscribe(async ({ roomId, started }) => {
             if (roomId != null && started) {
