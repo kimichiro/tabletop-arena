@@ -3,8 +3,8 @@
 
     import { onMount } from 'svelte'
 
-    import { createInitialState, Position, Role } from '@tabletop-arena/game-schema'
-    import type { TicTacToeState } from '@tabletop-arena/game-schema'
+    import { createInitialState, Position, Role } from '@tabletop-arena/tictactoe'
+    import type { TicTacToeState } from '@tabletop-arena/tictactoe'
 
     import { goto } from '$app/navigation'
     import { PUBLIC_TICTACTOE_ROOM_NAME } from '$env/static/public'

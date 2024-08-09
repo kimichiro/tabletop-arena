@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { createInitialState } from '@tabletop-arena/game-schema'
-    import type { TicTacToeState } from '@tabletop-arena/game-schema'
+    import { createInitialState } from '@tabletop-arena/tictactoe'
+    import type { TicTacToeState } from '@tabletop-arena/tictactoe'
 
     import { beforeNavigate } from '$app/navigation'
     import { PUBLIC_TICTACTOE_ROOM_NAME } from '$env/static/public'

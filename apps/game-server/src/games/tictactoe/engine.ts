@@ -1,5 +1,13 @@
 import { ArraySchema } from '@colyseus/schema'
 import {
+    AlreadyEndedError,
+    Identity,
+    IdentitySchema,
+    InvalidActionError,
+    InvalidPlayerError,
+    UnavailableSeatError
+} from '@tabletop-arena/game-engine'
+import {
     Action,
     ActionSchema,
     Area,
@@ -11,15 +19,7 @@ import {
     Position,
     Role,
     TicTacToeStateSchema
-} from '@tabletop-arena/game-schema'
-import {
-    AlreadyEndedError,
-    Identity,
-    IdentitySchema,
-    InvalidActionError,
-    InvalidPlayerError,
-    UnavailableSeatError
-} from '@tabletop-arena/schema'
+} from '@tabletop-arena/tictactoe'
 import { injectable } from 'tsyringe'
 
 import { TurnBasedEngine } from '../../engines/turn-based-engine'

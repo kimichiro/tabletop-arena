@@ -4,6 +4,7 @@
     "private": true,
     "exports": {
         ".": "./tsconfig.json",
+        "./package": "./package/tsconfig.json",
         "./svelte": "./svelte/tsconfig.json"
     }
 }

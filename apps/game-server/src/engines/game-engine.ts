@@ -1,6 +1,6 @@
 import { Client } from '@colyseus/core'
 import { Schema } from '@colyseus/schema'
-import { InvalidActionError } from '@tabletop-arena/schema'
+import { InvalidActionError } from '@tabletop-arena/game-engine'
 
 import { IdToken } from '../auth'
 import { GameClock } from './game-clock'

@@ -1,9 +1,12 @@
 {
-    "extends": "@tabletop-arena/typescript-config",
+    "extends": "../tsconfig.base.json",
     "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "useDefineForClassFields": false
-    },
-    "include": ["./src/**/*.ts"]
+    }
 }

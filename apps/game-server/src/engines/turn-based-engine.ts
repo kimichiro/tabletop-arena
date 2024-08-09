@@ -10,7 +10,7 @@ import {
     TurnBasedStateSchema,
     TurnBasedSummary,
     UnknownClientError
-} from '@tabletop-arena/schema'
+} from '@tabletop-arena/game-engine'
 
 import { IdToken } from '../auth'
 import { CountdownTimer } from './game-clock'

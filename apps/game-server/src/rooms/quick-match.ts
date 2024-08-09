@@ -7,7 +7,7 @@ import {
     GameError,
     OnEndedMessageName,
     OnStartMessageName
-} from '@tabletop-arena/schema'
+} from '@tabletop-arena/game-engine'
 import { IncomingMessage } from 'http'
 import { container } from 'tsyringe'
 

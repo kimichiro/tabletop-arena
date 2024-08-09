@@ -1,4 +1,4 @@
-import { ErrorCode } from '@tabletop-arena/schema'
+import { ErrorCode } from '@tabletop-arena/game-engine'
 import { Client } from 'colyseus.js'
 import type { Room } from 'colyseus.js'
 import { EventEmitter } from 'eventemitter3'

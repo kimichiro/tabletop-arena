@@ -9,7 +9,7 @@ import {
     TurnBasedResultSchema,
     TurnBasedStateSchema,
     TurnBasedSummarySchema
-} from '@tabletop-arena/schema'
+} from '@tabletop-arena/game-engine'
 import { Client } from 'colyseus'
 
 import { Action, Area, Move, Player, Position, Role, Table, TicTacToeState } from './state'

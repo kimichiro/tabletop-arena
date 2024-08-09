@@ -1,9 +1,6 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",
-        "moduleResolution": "bundler",
         "outDir": "build/esm"
     }
 }

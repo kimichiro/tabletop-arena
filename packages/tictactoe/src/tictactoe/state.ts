@@ -6,7 +6,7 @@ import {
     TurnBasedPlayableObject,
     TurnBasedPlayer,
     TurnBasedState
-} from '@tabletop-arena/schema'
+} from '@tabletop-arena/game-engine'
 
 export enum Role {
     Oh = 'O',

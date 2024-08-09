@@ -14,7 +14,7 @@
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
         "lint": "prettier --write . && eslint .",
-        "test": "vitest run --coverage"
+        "test": "vitest run"
     },
     "dependencies": {
         "colyseus.js": "^0.15.25",
@@ -26,8 +26,8 @@
         "@sveltejs/vite-plugin-svelte": "^3.1.1",
         "@tabletop-arena/eslint-config": "^0.0.0",
         "@tabletop-arena/game-client": "^0.0.0",
-        "@tabletop-arena/game-schema": "^0.0.0",
-        "@tabletop-arena/schema": "^0.0.0",
+        "@tabletop-arena/game-engine": "^0.0.0",
+        "@tabletop-arena/tictactoe": "^0.0.0",
         "@tabletop-arena/typescript-config": "^0.0.0",
         "@tailwindcss/typography": "^0.5.13",
         "@types/eslint": "^8.56.10",

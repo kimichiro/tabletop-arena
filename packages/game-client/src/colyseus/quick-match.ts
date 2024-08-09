@@ -3,8 +3,8 @@ import {
     OnStartMessageName,
     OnEndedMessageName,
     OnStateChangedMessageName
-} from '@tabletop-arena/schema'
-import type { ActionPayload, OnStateChangedPayload } from '@tabletop-arena/schema'
+} from '@tabletop-arena/game-engine'
+import type { ActionPayload, OnStateChangedPayload } from '@tabletop-arena/game-engine'
 
 import { Match } from './match'
 
