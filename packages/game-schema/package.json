@@ -5,9 +5,18 @@
     "engines": {
         "node": ">=20"
     },
-    "main": "./build/cjs/index.js",
-    "module": "./build/esm/index.js",
-    "types": "./src/index.ts",
+    "exports": {
+        ".": {
+            "require": {
+                "types": "./src/index.ts",
+                "default": "./build/cjs/index.js"
+            },
+            "import": {
+                "types": "./src/index.ts",
+                "default": "./build/esm/index.js"
+            }
+        }
+    },
     "scripts": {
         "build": "npm run build:cjs && npm run build:esm",
         "build:cjs": "tsc --project tsconfig.cjs.json",
