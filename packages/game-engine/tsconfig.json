@@ -1,4 +1,7 @@
 {
     "extends": "@tabletop-arena/typescript-config/package",
+    "compilerOptions": {
+        "rootDir": "./src"
+    },
     "include": ["./src/**/*.ts"]
 }

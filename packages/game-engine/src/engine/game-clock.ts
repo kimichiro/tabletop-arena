@@ -1,5 +1,8 @@
 import { Clock } from 'colyseus'
 import dayjs from 'dayjs'
+import durationPlugin from 'dayjs/plugin/duration'
+
+dayjs.extend(durationPlugin)
 
 export type TimerHandler<T extends Timer> = (timer: T) => void
 

@@ -23,9 +23,11 @@
         "build:esm": "tsc --project tsconfig.esm.json",
         "lint": "prettier --write . && eslint ."
     },
+    "dependencies": {
+        "@tabletop-arena/game-engine": "^0.0.0"
+    },
     "devDependencies": {
         "@tabletop-arena/eslint-config": "^0.0.0",
-        "@tabletop-arena/game-engine": "^0.0.0",
         "@tabletop-arena/typescript-config": "^0.0.0",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",

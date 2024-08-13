@@ -4,16 +4,15 @@ import {
     ActionMessageName,
     ActionPayload,
     ErrorCode,
+    GameClock,
+    GameEngine,
     GameError,
+    IdToken,
     OnEndedMessageName,
     OnStartMessageName
 } from '@tabletop-arena/game-engine'
 import { IncomingMessage } from 'http'
 import { container } from 'tsyringe'
-
-import { IdToken } from '../auth'
-import { GameClock } from '../engines/game-clock'
-import { GameEngine } from '../engines/game-engine'
 
 interface Connection {
     client: Client

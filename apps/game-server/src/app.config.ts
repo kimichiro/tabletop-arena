@@ -3,21 +3,19 @@ import 'reflect-metadata'
 import { monitor } from '@colyseus/monitor'
 import { playground } from '@colyseus/playground'
 import { default as config } from '@colyseus/tools'
-import dayjs from 'dayjs'
-import durationPlugin from 'dayjs/plugin/duration'
+import TicTacToeEngine from '@tabletop-arena/tictactoe'
 import { container } from 'tsyringe'
 
-import games from './games'
+import { QuickMatch } from './rooms/quick-match'
 
 export default config({
     initializeGameServer: (gameServer) => {
         /**
          * Define your room handlers:
          */
-        games.forEach(({ name, room, engine }) => {
-            container.register(name, engine)
-            gameServer.define(name, room)
-        })
+
+        container.register('tictactoe', TicTacToeEngine)
+        gameServer.define('tictactoe', QuickMatch)
     },
 
     initializeExpress: (app) => {
@@ -50,6 +48,5 @@ export default config({
         /**
          * Before before gameServer.listen() is called.
          */
-        dayjs.extend(durationPlugin)
     }
 })

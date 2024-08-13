@@ -1,29 +1,30 @@
 import { ArraySchema } from '@colyseus/schema'
 import {
     AlreadyEndedError,
+    GameSettings,
     Identity,
     IdentitySchema,
     InvalidActionError,
     InvalidPlayerError,
+    TurnBasedEngine,
     UnavailableSeatError
 } from '@tabletop-arena/game-engine'
+
 import {
     Action,
-    ActionSchema,
     Area,
-    ResultSchema,
     Move,
-    MoveSchema,
     Player,
-    PlayerSchema,
     Position,
     Role,
+} from './state'
+import {
+    ActionSchema,
+    ResultSchema,
+    MoveSchema,
+    PlayerSchema,
     TicTacToeStateSchema
-} from '@tabletop-arena/tictactoe'
-import { injectable } from 'tsyringe'
-
-import { TurnBasedEngine } from '../../engines/turn-based-engine'
-import { GameSettings } from '../../engines/game-engine'
+} from './state.schema'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopLeft, Position.TopCenter, Position.TopRight],
@@ -41,7 +42,6 @@ const decisivePositions: Array<[Position, Position, Position]> = [
 const TICTACTOE_EXPECTED_PLAYERS = 2
 const TICTACTOE_STARTING_ROLE = Role.Ex
 
-@injectable()
 export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<Action>> {
     private availableSeats: Role[] = [Role.Ex, Role.Oh]
 
