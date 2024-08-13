@@ -10,21 +10,8 @@ import {
     UnavailableSeatError
 } from '@tabletop-arena/game-engine'
 
-import {
-    Action,
-    Area,
-    Move,
-    Player,
-    Position,
-    Role,
-} from './state'
-import {
-    ActionSchema,
-    ResultSchema,
-    MoveSchema,
-    PlayerSchema,
-    TicTacToeStateSchema
-} from './state.schema'
+import { Action, Area, Move, Player, Position, Role } from '../schema/state'
+import { ActionSchema, ResultSchema, MoveSchema, PlayerSchema, TicTacToeStateSchema } from '../schema/state.schema'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopLeft, Position.TopCenter, Position.TopRight],

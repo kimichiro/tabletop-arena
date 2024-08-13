@@ -1,10 +1,5 @@
-import {
-    ActionMessageName,
-    OnStartMessageName,
-    OnEndedMessageName,
-    OnStateChangedMessageName
-} from '@tabletop-arena/game-engine'
-import type { ActionPayload, OnStateChangedPayload } from '@tabletop-arena/game-engine'
+import { ActionMessageName, OnStartMessageName, OnEndedMessageName, OnStateChangedMessageName } from '../schema'
+import type { ActionPayload, OnStateChangedPayload } from '../schema'
 
 import { Match } from './match'
 

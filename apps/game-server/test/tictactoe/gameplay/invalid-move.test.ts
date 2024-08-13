@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, jest } from '@jes
 
 import { Room as ServerRoom } from '@colyseus/core'
 import { ColyseusTestServer, boot } from '@colyseus/testing'
-import { ActionMessageName, ErrorCode } from '@tabletop-arena/game-engine'
+import { ActionMessageName, ErrorCode } from '@tabletop-arena/game-client/schema'
 import { Room as ClientRoom } from 'colyseus.js'
 
 import appConfig from '../../../src/app.config'

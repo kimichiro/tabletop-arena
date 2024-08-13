@@ -4,13 +4,10 @@ import {
     ActionMessageName,
     ActionPayload,
     ErrorCode,
-    GameClock,
-    GameEngine,
-    GameError,
-    IdToken,
     OnEndedMessageName,
     OnStartMessageName
-} from '@tabletop-arena/game-engine'
+} from '@tabletop-arena/game-client/schema'
+import { EngineError, GameClock, GameEngine, IdToken } from '@tabletop-arena/game-engine'
 import { IncomingMessage } from 'http'
 import { container } from 'tsyringe'
 
@@ -148,7 +145,7 @@ export class QuickMatch extends Room {
         } catch (error) {
             logger.warn(`[${this.roomId}][${client.sessionId}] action: ${error}`)
 
-            const code = error instanceof GameError ? error.code : ErrorCode.Consented
+            const code = error instanceof EngineError ? error.code : ErrorCode.Consented
             const message = error instanceof Error ? error.message : `${error}`
             client.error(code, message)
         }

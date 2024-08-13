@@ -1,7 +1,8 @@
-import { ErrorCode } from '@tabletop-arena/game-engine'
 import { Client } from 'colyseus.js'
 import type { Room } from 'colyseus.js'
 import { EventEmitter } from 'eventemitter3'
+
+import { ErrorCode } from '../schema'
 
 export abstract class Match<State> {
     private readonly events: EventEmitter

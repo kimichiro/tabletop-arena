@@ -17,6 +17,7 @@
         "@colyseus/monitor": "^0.15.7",
         "@colyseus/playground": "^0.15.12",
         "@colyseus/tools": "^0.15.39",
+        "@tabletop-arena/game-client": "^0.0.0",
         "@tabletop-arena/game-engine": "^0.0.0",
         "@tabletop-arena/tictactoe": "^0.0.0",
         "colyseus": "^0.15.17",

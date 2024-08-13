@@ -1,5 +1,5 @@
 import { QuickMatch } from '@tabletop-arena/game-client'
-import { ErrorCode } from '@tabletop-arena/game-engine'
+import { ErrorCode } from '@tabletop-arena/game-client/schema'
 import type { Action } from '@tabletop-arena/tictactoe'
 import { writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'

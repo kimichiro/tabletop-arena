@@ -15,6 +15,16 @@
                 "types": "./src/index.ts",
                 "default": "./build/esm/index.js"
             }
+        },
+        "./schema": {
+            "require": {
+                "types": "./src/schema/index.ts",
+                "default": "./build/cjs/schema/index.js"
+            },
+            "import": {
+                "types": "./src/schema/index.ts",
+                "default": "./build/esm/schema/index.js"
+            }
         }
     },
     "scripts": {

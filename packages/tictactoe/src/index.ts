@@ -1,8 +1,5 @@
-import { TicTacToeEngine } from './engine'
+import { TicTacToeEngine } from './engine/tictactoe-engine'
 
-export * from './state'
-export * from './state.schema'
-
-export * from './engine'
+export * from './schema/state'
 
 export default TicTacToeEngine
