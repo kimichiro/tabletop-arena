@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "@tabletop-arena/game-client": "^0.0.0",
+        "colyseus": "^0.15.17",
         "dayjs": "^1.11.12"
     },
     "devDependencies": {

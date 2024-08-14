@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+    game-server:
+        container_name: game-server
+        build:
+            context: .
+            dockerfile: ./apps/game-server/Dockerfile
+        restart: always
+        env_file: ./apps/game-server/.env.local
+        ports:
+            - 2567:2567
+        networks:
+            - app_network
+    tictactoe-svelte:
+        container_name: tictactoe-svelte
+        build:
+            context: .
+            dockerfile: ./apps/tictactoe-svelte/Dockerfile
+        restart: always
+        env_file: ./apps/tictactoe-svelte/.env.local
+        ports:
+            - 9001:9001
+        networks:
+            - app_network
+
+# Define a network, which allows containers to communicate
+# with each other, by using their container name as a hostname
+networks:
+    app_network:

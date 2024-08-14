@@ -30,3 +30,8 @@ This Turborepo has some additional tools already setup for you:
 - [TypeScript](https://www.typescriptlang.org/) for static type checking
 - [ESLint](https://eslint.org/) for code linting
 - [Prettier](https://prettier.io) for code formatting
+
+### Build Docker images
+
+- Game Server: `docker build -f .\apps\game-server\Dockerfile . --no-cache`
+- TicTacToe Client: `docker build -f .\apps\tictactoe-svelte\Dockerfile . --no-cache`
