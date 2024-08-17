@@ -38,10 +38,21 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {}
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'TL', role: 'X' },
@@ -56,38 +67,36 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
             ]),
             players: expect.arrayContaining([
                 {
-                    connection: {
-                        status: 'online'
-                    },
                     id: expect.any(String),
-                    isCurrentTurn: true,
                     name: expect.any(String),
-                    remainingTime: {
+                    userId: expect.any(String),
+                    self: true,
+                    connection: 'online',
+                    role: 'X',
+                    timeout: {
                         asMilliseconds: 30000,
                         minutes: 0,
                         seconds: 30
-                    },
-                    role: 'X',
-                    userId: expect.any(String)
+                    }
                 },
                 {
-                    connection: {
-                        status: 'online'
-                    },
                     id: expect.any(String),
-                    isCurrentTurn: false,
                     name: expect.any(String),
-                    remainingTime: {
+                    userId: expect.any(String),
+                    self: true,
+                    connection: 'online',
+                    role: 'O',
+                    timeout: {
                         asMilliseconds: 30000,
                         minutes: 0,
                         seconds: 30
-                    },
-                    role: 'O',
-                    userId: expect.any(String)
+                    }
                 }
             ]),
-            summary: {
-                moves: []
+            moves: [],
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })
@@ -100,12 +109,23 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {
                         CC: 'X'
                     }
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'TL', role: 'O' },
@@ -117,10 +137,12 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                 { position: 'BC', role: 'O' },
                 { position: 'BR', role: 'O' }
             ]),
-            summary: {
-                moves: expect.arrayContaining([
-                    { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) }
-                ])
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) }
+            ]),
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })
@@ -133,13 +155,24 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {
                         CC: 'X',
                         TC: 'O'
                     }
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'TL', role: 'X' },
@@ -150,11 +183,13 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                 { position: 'BC', role: 'X' },
                 { position: 'BR', role: 'X' }
             ]),
-            summary: {
-                moves: expect.arrayContaining([
-                    { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
-                    { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) }
-                ])
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) }
+            ]),
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })
@@ -167,14 +202,25 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {
                         CC: 'X',
                         TC: 'O',
                         TL: 'X'
                     }
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'TR', role: 'O' },
@@ -184,12 +230,14 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                 { position: 'BC', role: 'O' },
                 { position: 'BR', role: 'O' }
             ]),
-            summary: {
-                moves: expect.arrayContaining([
-                    { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
-                    { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
-                    { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) }
-                ])
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) }
+            ]),
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })
@@ -202,15 +250,26 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {
                         CC: 'X',
                         TC: 'O',
                         TL: 'X',
                         BR: 'O'
                     }
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'TR', role: 'X' },
@@ -219,13 +278,15 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                 { position: 'BL', role: 'X' },
                 { position: 'BC', role: 'X' }
             ]),
-            summary: {
-                moves: expect.arrayContaining([
-                    { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
-                    { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
-                    { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
-                    { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) }
-                ])
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) }
+            ]),
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })
@@ -238,7 +299,19 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {
                         CC: 'X',
                         TC: 'O',
@@ -246,8 +319,7 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                         BR: 'O',
                         BL: 'X'
                     }
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'TR', role: 'O' },
@@ -255,14 +327,16 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                 { position: 'CR', role: 'O' },
                 { position: 'BC', role: 'O' }
             ]),
-            summary: {
-                moves: expect.arrayContaining([
-                    { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
-                    { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
-                    { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
-                    { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
-                    { notation: 'BL', action: expect.objectContaining({ position: 'BL', role: 'X' }) }
-                ])
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
+                { notation: 'BL', action: expect.objectContaining({ position: 'BL', role: 'X' }) }
+            ]),
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })
@@ -275,7 +349,19 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {
                         CC: 'X',
                         TC: 'O',
@@ -284,23 +370,24 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                         BL: 'X',
                         TR: 'O'
                     }
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'CL', role: 'X' },
                 { position: 'CR', role: 'X' },
                 { position: 'BC', role: 'X' }
             ]),
-            summary: {
-                moves: expect.arrayContaining([
-                    { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
-                    { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
-                    { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
-                    { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
-                    { notation: 'BL', action: expect.objectContaining({ position: 'BL', role: 'X' }) },
-                    { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) }
-                ])
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
+                { notation: 'BL', action: expect.objectContaining({ position: 'BL', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) }
+            ]),
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })
@@ -313,7 +400,19 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {
                         CC: 'X',
                         TC: 'O',
@@ -323,30 +422,30 @@ describe(`TicTacToe / gameplay / x-player win`, () => {
                         TR: 'O',
                         CL: 'X'
                     }
-                },
-                players: {}
+                }
             },
             actions: [],
-            summary: {
-                moves: expect.arrayContaining([
-                    { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
-                    { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
-                    { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
-                    { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
-                    { notation: 'BL', action: expect.objectContaining({ position: 'BL', role: 'X' }) },
-                    { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
-                    { notation: 'CL', action: expect.objectContaining({ position: 'CL', role: 'X' }) }
-                ]),
-                result: {
-                    draw: false,
-                    winner: expect.arrayContaining([
-                        {
-                            id: expect.any(String),
-                            name: expect.any(String),
-                            userId: '101'
-                        }
-                    ])
-                }
+            moves: expect.arrayContaining([
+                { notation: 'CC', action: expect.objectContaining({ position: 'CC', role: 'X' }) },
+                { notation: 'TC', action: expect.objectContaining({ position: 'TC', role: 'O' }) },
+                { notation: 'TL', action: expect.objectContaining({ position: 'TL', role: 'X' }) },
+                { notation: 'BR', action: expect.objectContaining({ position: 'BR', role: 'O' }) },
+                { notation: 'BL', action: expect.objectContaining({ position: 'BL', role: 'X' }) },
+                { notation: 'TR', action: expect.objectContaining({ position: 'TR', role: 'O' }) },
+                { notation: 'CL', action: expect.objectContaining({ position: 'CL', role: 'X' }) }
+            ]),
+            status: {
+                ended: true,
+                draw: false,
+                winners: expect.arrayContaining([
+                    {
+                        id: expect.any(String),
+                        name: expect.any(String),
+                        userId: '101',
+                        self: true,
+                        connection: 'unknown'
+                    }
+                ])
             }
         })
     })

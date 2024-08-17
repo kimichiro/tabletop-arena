@@ -3,8 +3,8 @@ import {
     TurnBasedAction,
     TurnBasedArea,
     TurnBasedMove,
-    TurnBasedPlayableObject,
     TurnBasedPlayer,
+    TurnBasedScorecard,
     TurnBasedState
 } from '@tabletop-arena/game-engine'
 
@@ -25,11 +25,17 @@ export enum Position {
     BottomRight = 'BR'
 }
 
-export interface Table extends TurnBasedPlayableObject {
+export interface Scorecard extends TurnBasedScorecard {
+    role: Role
+}
+
+export interface Board {
     cells: MapSchema<Role, Position>
 }
 
-export interface Area extends TurnBasedArea<Table> {}
+export interface Area<TScorecard extends Scorecard> extends TurnBasedArea<TScorecard> {
+    board: Board
+}
 
 export interface Action extends TurnBasedAction {
     readonly role: Role
@@ -40,20 +46,24 @@ export interface Player extends TurnBasedPlayer {
     role: Role
 }
 
-export interface Move<TAction extends Action> extends TurnBasedMove {
-    readonly action: TAction
+export interface Move extends TurnBasedMove {
+    readonly action: Action
 }
 
-export interface TicTacToeState extends TurnBasedState<Area, Action, Player, Move<Action>> {}
+export interface TicTacToeState extends TurnBasedState<Area<Scorecard>, Action, Scorecard, Player, Move> {}
 
 export const createInitialState = (): TicTacToeState => ({
     area: {
-        global: { cells: new MapSchema() },
-        players: new MapSchema(),
-        self: null
+        scorecards: new ArraySchema(),
+        board: { cells: new MapSchema() }
     },
     actions: new ArraySchema(),
     players: new ArraySchema(),
     spectators: new ArraySchema(),
-    summary: { moves: new ArraySchema(), result: null }
+    moves: new ArraySchema(),
+    status: {
+        ended: false,
+        draw: false,
+        winners: null
+    }
 })

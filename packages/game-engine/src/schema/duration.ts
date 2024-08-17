@@ -1,4 +1,4 @@
-export interface TimeDuration {
+export interface Duration {
     minutes: number
     seconds: number
 

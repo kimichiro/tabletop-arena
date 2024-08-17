@@ -1,8 +1,8 @@
 import { Schema, type } from '@colyseus/schema'
 
-import { TimeDuration } from './time'
+import { Duration } from './duration'
 
-export class TimeDurationSchema extends Schema implements TimeDuration {
+export class DurationSchema extends Schema implements Duration {
     @type('number') minutes: number = 0
     @type('number') seconds: number = 0
 

@@ -51,10 +51,21 @@ describe(`TicTacToe / gameplay / invalid move`, () => {
 
         expect(room.state.toJSON()).toMatchObject({
             area: {
-                global: {
+                scorecards: expect.arrayContaining([
+                    {
+                        userId: expect.any(String),
+                        playing: true,
+                        role: 'X'
+                    },
+                    {
+                        userId: expect.any(String),
+                        playing: false,
+                        role: 'O'
+                    }
+                ]),
+                board: {
                     cells: {}
-                },
-                players: {}
+                }
             },
             actions: expect.arrayContaining([
                 { position: 'TL', role: 'X' },
@@ -69,38 +80,36 @@ describe(`TicTacToe / gameplay / invalid move`, () => {
             ]),
             players: expect.arrayContaining([
                 {
-                    connection: {
-                        status: 'online'
-                    },
                     id: expect.any(String),
-                    isCurrentTurn: true,
                     name: expect.any(String),
-                    remainingTime: {
+                    userId: expect.any(String),
+                    self: true,
+                    connection: 'online',
+                    role: 'X',
+                    timeout: {
                         asMilliseconds: 30000,
                         minutes: 0,
                         seconds: 30
-                    },
-                    role: 'X',
-                    userId: expect.any(String)
+                    }
                 },
                 {
-                    connection: {
-                        status: 'online'
-                    },
                     id: expect.any(String),
-                    isCurrentTurn: false,
                     name: expect.any(String),
-                    remainingTime: {
+                    userId: expect.any(String),
+                    self: true,
+                    connection: 'online',
+                    role: 'O',
+                    timeout: {
                         asMilliseconds: 30000,
                         minutes: 0,
                         seconds: 30
-                    },
-                    role: 'O',
-                    userId: expect.any(String)
+                    }
                 }
             ]),
-            summary: {
-                moves: []
+            moves: [],
+            status: {
+                ended: false,
+                draw: false
             }
         })
     })

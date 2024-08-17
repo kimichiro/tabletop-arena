@@ -1,49 +1,40 @@
-import { ArraySchema, MapSchema } from '@colyseus/schema'
+import { ArraySchema } from '@colyseus/schema'
 
-import { Connection, Identity } from './identity'
-import { TimeDuration } from './time'
+import { Duration } from './duration'
+import { Identity } from './identity'
 
-export interface TurnBasedArea<
-    TGlobal extends TurnBasedPlayableObject = TurnBasedPlayableObject,
-    TPlayer extends TurnBasedPlayableObject = TurnBasedPlayableObject
-> {
-    global: TGlobal
-    players: MapSchema<TPlayer, Identity['userId']>
-    self: TPlayer | null
+export interface TurnBasedScorecard {
+    userId: Identity['userId']
+    playing: boolean
 }
 
-export interface TurnBasedPlayableObject {}
+export interface TurnBasedArea<TScorecard extends TurnBasedScorecard = TurnBasedScorecard> {
+    scorecards: ArraySchema<TScorecard>
+}
 
 export interface TurnBasedAction {}
 
 export interface TurnBasedPlayer extends Identity {
-    connection: Connection
-    remainingTime: TimeDuration
-
-    isCurrentTurn: boolean
+    timeout: Duration
 }
 
 export interface TurnBasedMove {
     readonly notation: string
 }
 
-export interface TurnBasedResult {
-    readonly draw: boolean
-    readonly winner: ArraySchema<Identity> | null
-}
-
-export interface TurnBasedSummary<TMove extends TurnBasedMove, TResult extends TurnBasedResult> {
-    moves: ArraySchema<TMove>
-    result: TResult | null
+export interface TurnBasedStatus {
+    ended: boolean
+    draw: boolean
+    winners: ArraySchema<Identity> | null
 }
 
 export interface TurnBasedState<
-    TArea extends TurnBasedArea,
+    TArea extends TurnBasedArea<TScorecard>,
     TAction extends TurnBasedAction,
-    TPlayer extends TurnBasedPlayer,
+    TScorecard extends TurnBasedScorecard = TurnBasedScorecard,
+    TPlayer extends TurnBasedPlayer = TurnBasedPlayer,
     TMove extends TurnBasedMove = TurnBasedMove,
-    TResult extends TurnBasedResult = TurnBasedResult,
-    TSummary extends TurnBasedSummary<TMove, TResult> = TurnBasedSummary<TMove, TResult>
+    TStatus extends TurnBasedStatus = TurnBasedStatus
 > {
     area: TArea
     actions: ArraySchema<TAction>
@@ -51,5 +42,6 @@ export interface TurnBasedState<
     players: ArraySchema<TPlayer>
     spectators: ArraySchema<Identity>
 
-    summary: TSummary
+    moves: ArraySchema<TMove>
+    status: TStatus
 }

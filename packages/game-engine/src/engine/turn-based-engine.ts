@@ -1,14 +1,14 @@
 import { Client } from '@colyseus/core'
 import {
-    Identity,
+    ClientIdentity,
     IdentitySchema,
     TurnBasedAction,
     TurnBasedArea,
     TurnBasedMove,
     TurnBasedPlayer,
-    TurnBasedResult,
+    TurnBasedStatus,
+    TurnBasedScorecard,
     TurnBasedStateSchema,
-    TurnBasedSummary,
     UnknownClientError
 } from '@tabletop-arena/game-engine'
 
@@ -21,19 +21,18 @@ const TURN_BASED_TIMEOUT_ADD_DEFAULT = 20000
 const TURN_BASED_TIMEOUT_ADD_MINIMUM = 10000
 
 export abstract class TurnBasedEngine<
-    Area extends TurnBasedArea = TurnBasedArea,
-    Action extends TurnBasedAction = TurnBasedAction,
+    Area extends TurnBasedArea<Scorecard>,
+    Action extends TurnBasedAction,
+    Scorecard extends TurnBasedScorecard = TurnBasedScorecard,
     Player extends TurnBasedPlayer = TurnBasedPlayer,
     Move extends TurnBasedMove = TurnBasedMove,
-    Result extends TurnBasedResult = TurnBasedResult,
-    Summary extends TurnBasedSummary<Move, Result> = TurnBasedSummary<Move, Result>,
+    Result extends TurnBasedStatus = TurnBasedStatus,
     Settings extends GameSettings = GameSettings
-> extends GameEngine<TurnBasedStateSchema<Area, Action, Player, Move, Result, Summary>, Settings> {
+> extends GameEngine<TurnBasedStateSchema<Area, Action, Scorecard, Player, Move, Result>, Settings> {
     #timers: Map<Player, CountdownTimer> = new Map<Player, CountdownTimer>()
-    #currentTurn: Player | null = null
 
     validate(): void {
-        this.validateTurn()
+        this.validateTimers()
     }
 
     protected onConnect(client: Client, idToken: IdToken): void {
@@ -62,28 +61,27 @@ export abstract class TurnBasedEngine<
 
         if (oldPlayer != null) {
             newPlayer.connection = oldPlayer.connection
-            newPlayer.remainingTime = oldPlayer.remainingTime
-            newPlayer.isCurrentTurn = oldPlayer.isCurrentTurn
+            newPlayer.timeout = oldPlayer.timeout
 
             this.disposeCountdownTimer(oldPlayer)
         }
 
         this.createCountdownTimer(newPlayer, oldPlayer == null)
 
-        newPlayer.connection.status = 'online'
+        newPlayer.connection = 'online'
     }
 
     protected onDisconnect(client: Client): void {
         const player = this.state.players.find(({ id }) => id === client.sessionId)
         if (player != null) {
-            player.connection.status = 'offline'
+            player.connection = 'offline'
         }
     }
 
     protected onReconnect(client: Client): void {
         const player = this.state.players.find(({ id }) => id === client.sessionId)
         if (player != null) {
-            player.connection.status = 'online'
+            player.connection = 'online'
         }
     }
 
@@ -95,15 +93,14 @@ export abstract class TurnBasedEngine<
 
         this.onMove(player, payload)
 
-        const isEnded = this.state.summary.result != null
-        if (isEnded) {
+        if (this.state.status.ended) {
             const spectators = this.state.players.map(
                 ({ id, name, userId }) => new IdentitySchema({ id, name, userId })
             )
             this.state.spectators.unshift(...spectators)
         }
 
-        return isEnded
+        return this.state.status.ended
     }
 
     protected onDispose(): void {
@@ -111,67 +108,56 @@ export abstract class TurnBasedEngine<
         this.#timers.clear()
     }
 
-    protected abstract onJoin(identity: Identity, existing: Player | null): Player
+    protected abstract onJoin(identity: ClientIdentity, existing: Player | null): Player
 
     protected abstract onMove(player: Player, payload: object): void
 
-    private validateTurn(): void {
-        const currentTurn = this.state.players.find(({ isCurrentTurn }) => isCurrentTurn) ?? null
-        if (this.#currentTurn !== currentTurn) {
-            if (this.#currentTurn != null) {
-                this.pauseCountdownTimer(this.#currentTurn)
-            }
-            this.#currentTurn = currentTurn
-            if (this.#currentTurn != null) {
-                this.resumeCountdownTimer(this.#currentTurn)
-            }
+    private validateTimers(): void {
+        if (!this.started) {
+            return
         }
+
+        Array.from(this.#timers.entries()).forEach(([player, timer]) => {
+            const scorecard = this.state.area.scorecards.find(({ userId }) => userId === player.userId)
+            if (scorecard == null) {
+                timer.pause()
+                return
+            }
+
+            if (scorecard.playing) {
+                timer.resume()
+            } else if (!timer.paused) {
+                timer.pause()
+
+                const regainTimeout =
+                    timer.asMilliseconds > TURN_BASED_TIMEOUT_INITIAL
+                        ? TURN_BASED_TIMEOUT_ADD_MINIMUM
+                        : TURN_BASED_TIMEOUT_ADD_DEFAULT
+                timer.increase(regainTimeout)
+            }
+
+            player.timeout.minutes = timer.minutes
+            player.timeout.seconds = timer.seconds
+            player.timeout.asMilliseconds = timer.asMilliseconds
+        })
     }
 
     private createCountdownTimer(player: Player, reset: boolean): void {
         const timer = this.clock.createCountdownTimer(
-            reset ? TURN_BASED_TIMEOUT_INITIAL : player.remainingTime.asMilliseconds,
+            reset ? TURN_BASED_TIMEOUT_INITIAL : player.timeout.asMilliseconds,
             ({ minutes, seconds, asMilliseconds }) => {
-                player.remainingTime.minutes = minutes
-                player.remainingTime.seconds = seconds
-                player.remainingTime.asMilliseconds = asMilliseconds
+                player.timeout.minutes = minutes
+                player.timeout.seconds = seconds
+                player.timeout.asMilliseconds = asMilliseconds
             }
         )
         this.#timers.set(player, timer)
 
-        player.remainingTime.minutes = timer.minutes
-        player.remainingTime.seconds = timer.seconds
-        player.remainingTime.asMilliseconds = timer.asMilliseconds
+        player.timeout.minutes = timer.minutes
+        player.timeout.seconds = timer.seconds
+        player.timeout.asMilliseconds = timer.asMilliseconds
 
         this.#timers.set(player, timer)
-    }
-
-    private resumeCountdownTimer(player: Player): void {
-        const timer = this.#timers.get(player)
-        if (timer != null) {
-            timer.resume()
-
-            player.remainingTime.minutes = timer.minutes
-            player.remainingTime.seconds = timer.seconds
-            player.remainingTime.asMilliseconds = timer.asMilliseconds
-        }
-    }
-
-    private pauseCountdownTimer(player: Player): void {
-        const timer = this.#timers.get(player)
-        if (timer != null) {
-            timer.pause()
-
-            const regainTimeout =
-                timer.asMilliseconds > TURN_BASED_TIMEOUT_INITIAL
-                    ? TURN_BASED_TIMEOUT_ADD_MINIMUM
-                    : TURN_BASED_TIMEOUT_ADD_DEFAULT
-            timer.increase(regainTimeout)
-
-            player.remainingTime.minutes = timer.minutes
-            player.remainingTime.seconds = timer.seconds
-            player.remainingTime.asMilliseconds = timer.asMilliseconds
-        }
     }
 
     private disposeCountdownTimer(player: Player): void {

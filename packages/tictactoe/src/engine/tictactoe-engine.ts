@@ -10,8 +10,8 @@ import {
     UnavailableSeatError
 } from '@tabletop-arena/game-engine'
 
-import { Action, Area, Move, Player, Position, Role } from '../schema/state'
-import { ActionSchema, ResultSchema, MoveSchema, PlayerSchema, TicTacToeStateSchema } from '../schema/state.schema'
+import { Action, Area, Move, Player, Position, Role, Scorecard } from '../schema/state'
+import { ActionSchema, MoveSchema, PlayerSchema, TicTacToeStateSchema, ScorecardSchema } from '../schema/state.schema'
 
 const decisivePositions: Array<[Position, Position, Position]> = [
     [Position.TopLeft, Position.TopCenter, Position.TopRight],
@@ -29,7 +29,7 @@ const decisivePositions: Array<[Position, Position, Position]> = [
 const TICTACTOE_EXPECTED_PLAYERS = 2
 const TICTACTOE_STARTING_ROLE = Role.Ex
 
-export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<Action>> {
+export class TicTacToeEngine extends TurnBasedEngine<Area<Scorecard>, Action, Scorecard, Player, Move> {
     private availableSeats: Role[] = [Role.Ex, Role.Oh]
 
     constructor() {
@@ -50,6 +50,16 @@ export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<
     }
 
     protected onStart(): boolean {
+        this.state.area.scorecards.push(
+            ...this.state.players.map((identity) => {
+                const scorecard = new ScorecardSchema(identity.userId, identity.role)
+                if (scorecard.role === TICTACTOE_STARTING_ROLE) {
+                    scorecard.playing = true
+                }
+                return scorecard
+            })
+        )
+
         this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopLeft))
         this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopCenter))
         this.state.actions.push(new ActionSchema(TICTACTOE_STARTING_ROLE, Position.TopRight))
@@ -73,7 +83,11 @@ export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<
                 throw new UnavailableSeatError()
             }
             player.role = role
-            player.isCurrentTurn = role === TICTACTOE_STARTING_ROLE
+
+            const scorecard = this.state.area.scorecards.find(({ userId }) => userId === player.userId)
+            if (scorecard != null) {
+                scorecard.playing = role === TICTACTOE_STARTING_ROLE
+            }
         }
 
         return player
@@ -84,13 +98,13 @@ export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<
             throw new AlreadyEndedError()
         }
 
-        const currentPlayer = this.state.players.find(
+        const currentScorecard = this.state.area.scorecards.find(
             ({ userId, role }) => userId === player.userId && role === action.role
         )
-        if (currentPlayer == null) {
+        if (currentScorecard == null) {
             throw new InvalidPlayerError()
         }
-        currentPlayer.isCurrentTurn = false
+        currentScorecard.playing = false
 
         const actionIndex = this.state.actions.findIndex(
             ({ position, role }) => position === action.position && role === action.role
@@ -99,16 +113,16 @@ export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<
             throw new InvalidActionError('unexpected action')
         }
 
-        this.state.area.global.cells.set(action.position, action.role)
+        this.state.area.board.cells.set(action.position, action.role)
 
-        this.state.summary.moves.push(new MoveSchema(action.position, new ActionSchema(action.role, action.position)))
+        this.state.moves.push(new MoveSchema(action.position, new ActionSchema(action.role, action.position)))
 
-        const result = this.checkResult()
-        if (result == null) {
+        this.validateResult()
+        if (!this.state.status.ended) {
             const otherRole = action.role === Role.Ex ? Role.Oh : Role.Ex
-            const currentTurn = this.state.players.find(({ role }) => role === otherRole) ?? null
-            if (currentTurn != null) {
-                currentTurn.isCurrentTurn = true
+            const nextScorecard = this.state.area.scorecards.find(({ role }) => role === otherRole)
+            if (nextScorecard != null) {
+                nextScorecard.playing = true
             }
 
             this.state.actions.splice(actionIndex, 1)
@@ -117,33 +131,27 @@ export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<
             )
         } else {
             this.state.actions.clear()
-            this.state.summary.result = result
         }
     }
 
-    private checkResult(): ResultSchema | null {
-        const moves = decisivePositions.map((positions) =>
-            positions.map((pos) => this.state.area.global.cells.get(pos))
-        )
+    private validateResult(): void {
+        const moves = decisivePositions.map((positions) => positions.map((pos) => this.state.area.board.cells.get(pos)))
 
-        const winningMove = moves.find((roles) => {
+        const decisiveMove = moves.find((roles) => {
             const move = roles.find((role) => role != null)
             return move != null && roles.every((role) => role === move)
         })
-        if (winningMove != null) {
-            const winner = this.state.players.find(({ role }) => role === winningMove.at(0))
-            return new ResultSchema(
-                false,
-                winner == null
-                    ? null
-                    : new ArraySchema<Identity>(
-                          new IdentitySchema({
-                              id: winner.id,
-                              name: winner.name,
-                              userId: winner.userId
-                          })
-                      )
+        const winner = this.state.players.find(({ role }) => role === decisiveMove?.at(0))
+        if (winner != null) {
+            this.state.status.ended = true
+            this.state.status.winners = new ArraySchema<Identity>(
+                new IdentitySchema({
+                    id: winner.id,
+                    name: winner.name,
+                    userId: winner.userId
+                })
             )
+            return
         }
 
         const possibleWin = moves.some((roles) => {
@@ -151,9 +159,9 @@ export class TicTacToeEngine extends TurnBasedEngine<Area, Action, Player, Move<
             return roles.every((role) => role === move || role == null)
         })
         if (!possibleWin) {
-            return new ResultSchema(true, null)
+            this.state.status.ended = true
+            this.state.status.draw = true
+            return
         }
-
-        return null
     }
 }

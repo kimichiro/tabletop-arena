@@ -29,7 +29,7 @@
         const { roomId, state } = $gameStore
         return (
             roomId != null &&
-            state.area.global.cells.get(position) == null &&
+            state.area.board.cells.get(position) == null &&
             state.actions.some((action) => action.position === position)
         )
     }
@@ -64,28 +64,28 @@
 
     $: area = $gameStore.state.area
     $: players = $gameStore.state.players
-    $: currentTurn = players.find(({ isCurrentTurn }) => isCurrentTurn) ?? null
-    $: result = $gameStore.state.summary.result
+    $: currentTurn = area.scorecards.find(({ playing }) => playing)?.userId
+    $: result = $gameStore.state.result
 
     $: userSessionId = $gameStore.sessionId
-    $: currentPlayer = players.find(({ id }) => id === userSessionId)
+    $: currentPlayer = players.find(({ id, userId }) => id === userSessionId && userId === currentTurn)
 
     $: indicatorTitle = ' '
-    $: timerMinutes = currentPlayer?.remainingTime.minutes ?? 0
-    $: timerSeconds = currentPlayer?.remainingTime.seconds ?? 0
+    $: timerMinutes = currentPlayer?.timeout.minutes ?? 0
+    $: timerSeconds = currentPlayer?.timeout.seconds ?? 0
 
     $: playerEx = players.find(({ role }) => role === Role.Ex)
     $: playerOh = players.find(({ role }) => role === Role.Oh)
 
-    $: cellTopLeftMark = area.global.cells.get(Position.TopLeft) ?? ' '
-    $: cellCenterLeftMark = area.global.cells.get(Position.CenterLeft) ?? ' '
-    $: cellBottomLeftMark = area.global.cells.get(Position.BottomLeft) ?? ' '
-    $: cellTopCenterMark = area.global.cells.get(Position.TopCenter) ?? ' '
-    $: cellCenterCenterMark = area.global.cells.get(Position.CenterCenter) ?? ' '
-    $: cellBottomCenterMark = area.global.cells.get(Position.BottomCenter) ?? ' '
-    $: cellTopRightMark = area.global.cells.get(Position.TopRight) ?? ' '
-    $: cellCenterRightMark = area.global.cells.get(Position.CenterRight) ?? ' '
-    $: cellBottomRightMark = area.global.cells.get(Position.BottomRight) ?? ' '
+    $: cellTopLeftMark = area.board.cells.get(Position.TopLeft) ?? ' '
+    $: cellCenterLeftMark = area.board.cells.get(Position.CenterLeft) ?? ' '
+    $: cellBottomLeftMark = area.board.cells.get(Position.BottomLeft) ?? ' '
+    $: cellTopCenterMark = area.board.cells.get(Position.TopCenter) ?? ' '
+    $: cellCenterCenterMark = area.board.cells.get(Position.CenterCenter) ?? ' '
+    $: cellBottomCenterMark = area.board.cells.get(Position.BottomCenter) ?? ' '
+    $: cellTopRightMark = area.board.cells.get(Position.TopRight) ?? ' '
+    $: cellCenterRightMark = area.board.cells.get(Position.CenterRight) ?? ' '
+    $: cellBottomRightMark = area.board.cells.get(Position.BottomRight) ?? ' '
 
     $: cellTopLeftActionable = false
     $: cellCenterLeftActionable = false
@@ -97,21 +97,17 @@
     $: cellCenterRightActionable = false
     $: cellBottomRightActionable = false
 
-    $: isYourTurn = currentTurn?.id != null && currentTurn.id === userSessionId
-    $: isGameEnded = result?.draw != null || result?.winner != null
+    $: isYourTurn = currentPlayer?.id != null && currentPlayer.id === userSessionId
+    $: isGameEnded = result.ended
 
     $: {
-        indicatorTitle = ' '
-        if (currentTurn?.id != null && userSessionId != null) {
-            if (currentTurn.id === userSessionId) {
-                indicatorTitle = `Your Turn!`
-            } else {
-                indicatorTitle = `Opponent's Turn!`
-            }
-        } else if (result?.draw === true) {
+        indicatorTitle = `Opponent's Turn!`
+        if (currentPlayer?.id != null && currentPlayer.id === userSessionId) {
+            indicatorTitle = `Your Turn!`
+        } else if (result.draw === true) {
             indicatorTitle = `Draw!`
-        } else if (result?.winner?.at(0)?.id != null && userSessionId != null) {
-            if (result?.winner?.at(0)?.id === userSessionId) {
+        } else if (result.winners?.at(0)?.id != null && userSessionId != null) {
+            if (result.winners?.at(0)?.id === userSessionId) {
                 indicatorTitle = `You Won!`
             } else {
                 indicatorTitle = `You Lose!`
@@ -255,7 +251,7 @@
         <div class="score-board">
             <div
                 class="player-card"
-                class:current-turn={playerEx != null && playerEx?.id === currentTurn?.id}
+                class:current-turn={playerEx != null && playerEx?.id === currentPlayer?.id}
                 class:me={playerEx?.id === userSessionId}
             >
                 <div class="player-label">
@@ -266,7 +262,7 @@
             <div class="divider divider-horizontal">VS</div>
             <div
                 class="player-card"
-                class:current-turn={playerOh != null && playerOh?.id === currentTurn?.id}
+                class:current-turn={playerOh != null && playerOh?.id === currentPlayer?.id}
                 class:me={playerOh?.id === userSessionId}
             >
                 <div class="player-label">

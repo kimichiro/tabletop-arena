@@ -7,6 +7,8 @@ dayjs.extend(durationPlugin)
 export type TimerHandler<T extends Timer> = (timer: T) => void
 
 export interface Timer {
+    readonly paused: boolean
+
     pause: () => void
     resume: () => void
     clear: () => void
@@ -60,6 +62,9 @@ export class GameClock {
             },
             get asMilliseconds() {
                 return duration.asMilliseconds()
+            },
+            get paused() {
+                return delayed.paused
             },
             pause: () => delayed.pause(),
             resume: () => delayed.resume(),
